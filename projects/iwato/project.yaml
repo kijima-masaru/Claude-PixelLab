@@ -1,0 +1,53 @@
+# =====================================================================
+# 磐戸町奇譚 (iwato) — プロジェクト設定
+#
+# このファイルがこのプロジェクトの唯一の設定元である。
+# 解像度・タイルサイズ・色数はここだけに書き、ツールには --project iwato
+# だけを渡す。ツール側にプロジェクト固有の値を書かないこと。
+#
+# スキーマ: schema/project.schema.json
+# =====================================================================
+
+id: iwato
+title: 磐戸町奇譚
+description: 2Dドット絵・見下ろし型ホラーアドベンチャー
+
+engine:
+  name: godot
+  version: "4.7"
+
+canvas:
+  # タイル1辺のピクセル数。後処理のグリッド整列と検証の基準。
+  tile_size: 32
+  # ゲームの基準解像度（論理解像度）。背景1枚のサイズ算出に使う。
+  base_resolution:
+    width: 640
+    height: 360
+
+palette:
+  # 使用してよい色数の上限。validate_assets.py の検査基準。
+  max_colors: 64
+  # パレットファイルのプロジェクト相対パス。未確定なら null。
+  file: null
+
+output:
+  # エンジン側のインポート設定と必ず一致させること。
+  # ドット絵では filter=nearest / mipmaps=false / compression=none で固定する。
+  format: png
+  filter: nearest
+  mipmaps: false
+  compression: none
+  normalmap: true
+
+# assets/ 直下に作るカテゴリ。
+asset_categories: [backgrounds, tilesets, ui, icons]
+
+generation:
+  # 生成サービス識別子。ここを切り替えることで特定サービスへの固着を避ける。
+  # APIキーは環境変数から読む。ここには書かない。
+  provider: pixellab
+  model: null
+  default_params: {}
+
+notes: |
+  作成日: 2026-09-04
