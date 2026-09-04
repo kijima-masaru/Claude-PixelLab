@@ -49,7 +49,7 @@ python tools/new_project.py \
 | `--colors` | ○ | 色数の上限 |
 | `--description` | | 一行説明 |
 | `--engine` / `--engine-version` | | 既定は `godot` / `4.7` |
-| `--categories` | | 既定は `backgrounds tilesets ui icons` |
+| `--categories` | | 既定は `tilesets objects overhead ui icons` |
 | `--provider` | | 既定は `pixellab` |
 | `--normalmap` | | ノーマルマップを使う構成にする |
 | `--force` | | 既存ディレクトリを上書きする |
@@ -92,7 +92,7 @@ rm projects/<id>/refs/dummy.png projects/<id>/_work/dummy.png
 LFS の対象範囲も確認しておく。
 
 ```bash
-git check-attr filter -- projects/<id>/assets/backgrounds/sample.png   # → filter: lfs
+git check-attr filter -- projects/<id>/assets/tilesets/sample.png      # → filter: lfs
 git check-attr filter -- projects/<id>/_work/raw_001.png               # → filter: unspecified
 ```
 

@@ -49,7 +49,7 @@
 ### 2. 素材要件
 
 「何を何枚作るか」を確定する。置き場所は `projects/iwato/requirements/`。
-カテゴリは `backgrounds` `tilesets` `ui` `icons` の4つ。
+カテゴリは `tilesets` `objects` `overhead` `ui` `icons` の5つ。
 
 決める必要があること:
 
