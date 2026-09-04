@@ -305,6 +305,13 @@ def generate(cfg: dict, endpoint: str, request: dict, args: argparse.Namespace,
     body, used = provider.call(endpoint, request, cfg["generation"]["provider"])
     usd = used["usd"]
     generations = used["generations"]
+    # /create-tileset は完了応答に画像を含まず tileset_id だけを返す。
+    # タイルは別途取得する（追加の消費はない）。
+    tileset_id = body.get("tileset_id")
+    if tileset_id and not provider.extract_images(body):
+        tiles = provider.fetch_tileset(tileset_id, cfg["generation"]["provider"])
+        body = {**body, "tiles": tiles.get("tiles", []), "tileset": tiles}
+
     images = provider.extract_images(body)
 
     if usd > args.max_cost:

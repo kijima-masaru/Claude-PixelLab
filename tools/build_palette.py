@@ -297,11 +297,18 @@ def write_color_source(colours: list, path) -> None:
         from PIL import Image
     except ImportError:
         return
-    side = 8
+    # PixelLab は color_image に 64x64 を要求する（8x8 で送ると
+    # "Expected image of size 64x64" で生成が失敗する。実測で確認）。
+    # 1色を block x block の塊にして、64色を 64x64 に敷き詰める。
+    grid, block = 8, 8
+    side = grid * block
     img = Image.new("RGB", (side, side), (0, 0, 0))
     px = img.load()
-    for i, c in enumerate(colours[: side * side]):
-        px[i % side, i // side] = c["rgb"]
+    for i, c in enumerate(colours[: grid * grid]):
+        gx, gy = (i % grid) * block, (i // grid) * block
+        for y in range(block):
+            for x in range(block):
+                px[gx + x, gy + y] = c["rgb"]
     img.save(path)
 
 
