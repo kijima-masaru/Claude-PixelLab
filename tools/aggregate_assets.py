@@ -49,6 +49,8 @@ CLASS_COST = {
     "deco": (1, 1),
     "object_low": (1, 1),
     "object_tall": (0, 0),      # 未解決のため見積もらない
+    "tileset_extra": (3, 4),    # 連続構造物としてタイルセット化するもの
+    "merged": (0, 0),           # 他の素材へ統合したため単独では作らない
 }
 
 #: 採用1点あたりの平均試行回数。
@@ -98,12 +100,14 @@ def report_plan(project_id: str, data: dict, plan: dict, attempts: int) -> None:
 
     rows = [
         ("タイルセット A（地形ペア）", n_a, "tileset_a", "実証済み"),
+        ("タイルセット（連続構造物）", buckets.get("tileset_extra", 0), "tileset_extra", "未検証"),
         ("タイルセット B（平坦2素材）", n_b, "tileset_b", "未検証"),
         ("屋根タイルセット", n_roof, "tileset_roof", "未検証"),
         ("地面の装飾（ground_detail）", n_deco, "deco", "投影の影響なし"),
         ("低い単体物（objects）", buckets.get("object_low", 0), "object_low", "未検証"),
         ("overhead", n_ovh, "object_low", "未検証"),
         ("高い単体物（objects）", buckets.get("object_tall", 0), "object_tall", "**未解決**"),
+        ("他へ統合（単独では作らない）", buckets.get("merged", 0), "merged", "統合済み"),
     ]
 
     print("=" * 88)
@@ -114,15 +118,21 @@ def report_plan(project_id: str, data: dict, plan: dict, attempts: int) -> None:
     lo_t = hi_t = calls_t = pts_t = 0
     for label, n, cls, state in rows:
         lo, hi = CLASS_COST[cls]
-        calls = n * attempts
+        # 統合済みの素材は単独では作らないため、コールも点数も計上しない
+        calls = 0 if cls == "merged" else n * attempts
         glo, ghi = calls * lo, calls * hi
-        lo_t += glo; hi_t += ghi; calls_t += calls; pts_t += n
-        cost = "未定" if cls == "object_tall" else "%d - %d" % (glo, ghi)
-        print("%-30s %6d %10d %18s  %s" % (label, n, calls, cost, state))
+        if cls not in ("merged", "object_tall"):
+            lo_t += glo; hi_t += ghi; calls_t += calls; pts_t += n
+        cost = {"object_tall": "未定", "merged": "—"}.get(cls, "%d - %d" % (glo, ghi))
+        print("%-30s %6d %10s %18s  %s"
+              % (label, n, "—" if cls == "merged" else calls, cost, state))
     print("-" * 88)
-    print("%-30s %6d %10d %18s" % ("小計（未解決を除く）", pts_t, calls_t, "%d - %d" % (lo_t, hi_t)))
+    print("%-30s %6d %10d %18s" % ("小計（作るもの・未解決を除く）", pts_t, calls_t,
+                                   "%d - %d" % (lo_t, hi_t)))
     print("")
-    print("  タイルセットから得られるタイル: %d 枚（1本16タイル）" % ((n_a + n_b + n_roof) * 16))
+    n_extra = buckets.get("tileset_extra", 0)
+    print("  タイルセットから得られるタイル: %d 枚（1本16タイル）"
+          % ((n_a + n_b + n_roof + n_extra) * 16))
     print("")
     print("  ※ UI とアイコンは fields.json に含まれない。ASSETS_NEEDED.md を参照。")
     print("  ※ 高い単体物 %d 点は作り方が未解決のため見積もらない。"

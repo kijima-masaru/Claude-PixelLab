@@ -213,6 +213,91 @@ feature_audit:
     プロンプトを書くときに「白線」「マンホール」等を足さないこと。
 
 # ---------------------------------------------------------------------
+# 高さのある単体物24点の絞り込み（2026-09-04）
+#
+# **軸は「真上から見たときに何が見えるか」。**
+# 垂直な物は、真上から見れば上面しか見えない。地上に立つ姿を
+# 作る必要がない物は、別の作り方へ移せる。
+# ---------------------------------------------------------------------
+tall_triage:
+
+  to_overhead:
+    reason: |
+      **真上から見ると、葉のある樹木は樹冠しか見えない。幹は見えない。**
+      すでに overhead に樹冠（ovh_tree_canopy_cedar / broadleaf）があるため、
+      幹のオブジェクトは不要である。隧道の照明も天井付きであり overhead。
+    items:
+      obj_cedar_trunk:     { merge_into: ovh_tree_canopy_cedar, note: F16 の杉。真上からは樹冠のみ }
+      obj_persimmon_tree:  { merge_into: ovh_tree_canopy_broadleaf, note: F04 の柿。同上 }
+      obj_chestnut_tree:   { merge_into: ovh_tree_canopy_broadleaf, note: F04 の栗。同上 }
+      obj_tunnel_light:    { merge_into: ovh_viaduct_deck, note: 隧道の天井に付く照明。overhead 側 }
+    count: 4
+
+  to_tileset:
+    reason: |
+      **連続する構造物はタイルセットに向く。** 1点の物ではなく、
+      長く続く面である。地面 × 構造物の組で /create-tileset を使える。
+    items:
+      obj_noise_barrier: { note: "防音壁。F03/F09 を長く貫く。地面 × 壁の組" }
+      obj_backstop:      { note: バックネット。金網の面として連続する }
+    count: 2
+
+  merge:
+    reason: |
+      **形が同じで色だけが違う物は、1点作ってパレット置換で分ける。**
+      時間帯差分と同じ考え方であり、素材を増やさずに済む。
+    items:
+      obj_street_light_mercury:
+        merge_into: obj_street_light_led
+        note: |
+          ポールと灯具の形は同じ。違うのは光源色（ナトリウム橙 対 LED 青白）だけで、
+          それはパレットの sodium と fluoro の差し替えで表現できる。
+          **この色差はレジームA と B の分かれ目そのもの**であり重要だが、
+          形状の素材を2点持つ必要はない。
+      obj_vending_machine_old:
+        merge_into: obj_vending_machine
+        note: |
+          F05 の古い自販機。筐体の形は同じ。褪せ具合はパレット置換で表現できる。
+    count: 2
+
+  unresolved:
+    reason: |
+      **真上から見ても「立っている姿」を描く必要がある物。**
+      ここが投影の問題が残る唯一の領域である。
+    items:
+      - { id: obj_utility_pole,       fields: 12, note: "**最優先。12フィールドで使う最頻の素材**" }
+      - { id: obj_street_light_led,   fields: 4,  note: 街灯。mercury を統合済み }
+      - { id: obj_signboard_pole,     fields: 3,  note: 標識・案内板 }
+      - { id: obj_vending_machine,    fields: 4,  note: "_old を統合済み。品質基準あり" }
+      - { id: obj_torii,              fields: 2,  note: 鳥居 }
+      - { id: obj_temple_gate,        fields: 2,  note: 山門 }
+      - { id: obj_swing_set,          fields: 2,  note: ブランコ }
+      - { id: obj_bulletin_board,     fields: 2,  note: 掲示板 }
+      - { id: obj_bridge_pier,        fields: 1,  note: "橋脚。ただし overhead の高架に隠れる可能性がある" }
+      - { id: obj_plum_tree_bare,     fields: 1,  note: "**葉が無いため樹冠へ統合できない。** F08 の核となる画" }
+      - { id: obj_flag_pole,          fields: 1,  note: 校庭の掲揚塔 }
+      - { id: obj_goal_post,          fields: 1,  note: ゴールポスト }
+      - { id: obj_school_gate,        fields: 1,  note: 学校の正門 }
+      - { id: obj_bus_stop_pole,      fields: 1,  note: バス停のポール }
+      - { id: obj_road_mirror,        fields: 1,  note: カーブミラー }
+      - { id: obj_public_phone,       fields: 1,  note: 公衆電話 }
+    count: 16
+
+  summary:
+    before: 24
+    to_overhead: 4
+    to_tileset: 2
+    merged: 2
+    after: 16
+    note: |
+      **24点 → 16点（33%削減）。**
+      残る16点が、投影の問題が本当に残っている範囲である。
+
+      うち **obj_utility_pole は12フィールドで使う最頻の素材**であり、
+      これが解決すれば影響範囲の大部分が片付く。
+      逆に言えば、電柱1点の成否が量産の可否をほぼ決める。
+
+# ---------------------------------------------------------------------
 # オブジェクト91点の高さ分類
 #   投影の問題は高さのある物にだけ起きるため、高さで仕分ける。
 #   flat=地面に貼る / low=1タイル程度 / tall=2タイル以上 / building=建物
@@ -220,7 +305,7 @@ feature_audit:
 object_heights:
   obj_agricultural_machine:    object_low
   obj_air_conditioner_outdoor: object_low
-  obj_backstop:                object_tall
+  obj_backstop:                tileset_extra
   obj_bench:                   object_low
   obj_bicycle:                 object_low
   obj_bicycle_rack:            object_low
@@ -231,8 +316,8 @@ object_heights:
   obj_bridge_railing:          object_low
   obj_bulletin_board:          object_tall
   obj_bus_stop_pole:           object_tall
-  obj_cedar_trunk:             object_tall
-  obj_chestnut_tree:           object_tall
+  obj_cedar_trunk:             merged
+  obj_chestnut_tree:           merged
   obj_civic_facade:            roof
   obj_classroom_window:        object_low
   obj_conveni_front:           roof
@@ -260,10 +345,10 @@ object_heights:
   obj_laundry_pole:            object_low
   obj_low_table:               object_low
   obj_mailbox:                 object_low
-  obj_noise_barrier:           object_tall
+  obj_noise_barrier:           tileset_extra
   obj_offering_box:            object_low
   obj_ox_statue:               object_low
-  obj_persimmon_tree:          object_tall
+  obj_persimmon_tree:          merged
   obj_planter_box:             object_low
   obj_plum_tree_bare:          object_tall
   obj_police_box:              roof
@@ -290,17 +375,17 @@ object_heights:
   obj_stone_lantern:           object_low
   obj_stone_marker:            object_low
   obj_street_light_led:        object_tall
-  obj_street_light_mercury:    object_tall
+  obj_street_light_mercury:    merged
   obj_swing_set:               object_tall
   obj_temple_bell:             object_low
   obj_temple_gate:             object_tall
   obj_torii:                   object_tall
   obj_traffic_cone:            object_low
-  obj_tunnel_light:            object_tall
+  obj_tunnel_light:            merged
   obj_upright_piano:           object_low
   obj_utility_pole:            object_tall
   obj_vending_machine:         object_tall
-  obj_vending_machine_old:     object_tall
+  obj_vending_machine_old:     merged
   obj_wall_bars:               object_low
   obj_wall_clock:              object_low
   obj_water_basin:             object_low
