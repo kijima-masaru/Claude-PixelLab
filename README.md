@@ -96,14 +96,30 @@ LFS に入れてよいのは後処理済みの完成品 PNG だけである。
    ワークフローで生出力まで LFS に入れると、早期に枯渇する。
 2. **中間生成物そのものに価値はない。** 価値があるのは「それを作った条件」である。
 
-**再現性はシードとプロンプトの記録で担保する。**
+**再現性の担保は「完成品が Git LFS にあること」である。**
+
+当初はシードとプロンプトからの再生成を担保にする設計だったが、
+**PixelLab API は seed パラメータを受け取らず、応答にも返さない。**
+同じ条件で再送しても同一の画像は得られないため、この前提は成立しない。
+したがって **LFS 上の完成品が唯一の再現性の担保**であり、
+完成品の LFS 管理は当初想定より重要度が上がっている。
+
+生成ログの役割は次の3つである。
+
+1. 何をいくらで作ったかの記録（コスト管理）
+2. **同条件での引き直し**のための条件保存（同一画像の復元ではない）
+3. 採否と不採用理由の蓄積（プロンプト改善のため）
+
 生成のたびに `logs/generation_log.<project_id>.jsonl` へ以下を記録する。
 
 日時 / プロジェクトID / run_id / provider / モデル名 / モデルバージョン /
-プロンプト全文 / ネガティブプロンプト全文 / 全パラメータ / シード /
-出力パス / 完成品パス / 採否 / 不採用理由 / 推定コスト
+プロンプト全文 / ネガティブプロンプト全文 / 全パラメータ / エンドポイント /
+出力パス / 完成品パス / 採否 / 不採用理由 / 実額（`usage.usd`）
 
-**採用しなかった候補も、そのシードとプロンプトを必ず残す。** 不採用理由を1行
+`seed` の欄は常に `null` を記録する。**API が seed をサポートしないため**であり、
+記録漏れではない。理由は `seed_note` に併記される。
+
+**採用しなかった候補も、そのプロンプトと全パラメータを必ず残す。** 不採用理由を1行
 添えることで、後から「その方向は試して駄目だった」と分かるようにする。
 
 **APIキーおよびそれに類する値はログに書かない。** `tools/lib/genlog.py` が
@@ -115,16 +131,19 @@ LFS に入れてよいのは後処理済みの完成品 PNG だけである。
 | --- | --- |
 | 置き場所 | `projects/<project_id>/_work/<run_id>/` |
 | `run_id` | `20260904-143052-a1b2` 形式。ログの `run_id` と1対1で対応する |
-| 消してよい条件 | **ログを書き終えたら。** 採用済み（完成品が `assets/` にある）か、不採用としてログに `adopted: false` と理由を書き終えた状態 |
+| 消してよい条件 | **完成品が `assets/` にある（＝LFS に入った）か、不採用としてログに `adopted: false` と理由を書き終えた状態。** 採用したものは LFS の完成品が唯一の原本になる |
 | 消してはいけないもの | ログ未記載の生成物。これは「ログを書き忘れた」というバグの表れ |
 | ディスク圧迫時 | 上記を満たしていれば `_work/` を丸ごと削除してよい |
 
-復元は生成ログから行う。
+**画像そのものの復元はできない。** 引き直したい場合はログの条件で再生成する。
 
 ```bash
 python tools/regenerate.py --project <project_id> --run-id <run_id> --dry-run
 python tools/regenerate.py --project <project_id> --run-id <run_id>
 ```
+
+得られるのは「当時と同じ条件で引いた別の画像」である。同一画像が必要なら、
+`assets/` にある完成品（LFS 管理）を使うこと。
 
 ## ツールの使い方
 
@@ -139,8 +158,10 @@ python tools/regenerate.py --project <project_id> --run-id <run_id>
 | `tools/postprocess.py` | パレット適用・グリッド整列・アンチエイリアス除去 |
 | `tools/validate_assets.py` | パレット適合・グリッド・透明度の検査 |
 | `tools/normalmap.py` | ノーマルマップ生成 |
-| `tools/regenerate.py` | ログのシードとプロンプトから再生成 |
+| `tools/regenerate.py` | ログの条件で**同条件の引き直し**（同一画像の復元はできない） |
 | `tools/cost_report.py` | ログをプロジェクト別・期間別に集計 |
+| `tools/validate_fields.py` | フィールド定義の接続と素材IDを検証 |
+| `tools/aggregate_assets.py` | 素材要件を API のコール単位で集計 |
 
 各コマンドの詳細は `--help` を参照。
 
@@ -148,8 +169,19 @@ python tools/regenerate.py --project <project_id> --run-id <run_id>
 python tools/client.py --project iwato --prompt "..." --dry-run
 ```
 
-> **現状** — `client.py --dry-run` と `new_project.py` は動作する。それ以外の
-> 処理本体は骨格のみで未実装（次ステップ）。API 送信もまだ行わない。
+### 安全弁
+
+- **参照画像を送らない。** 送信直前に `tools/lib/guard.py` が検査し、
+  違反があれば送信を止める。回帰テストは `python tests/test_guard.py`
+- **上限。** `--max-images` と `--max-cost` のどちらか先に達した時点で停止する
+- **失敗を握り潰さない。** 401 / 402 / 422 は即停止、429 / 529 のみ
+  指数バックオフで最大3回再試行する
+
+### ノーマルマップ
+
+`tools/normalmap.py` で**ローカル生成する。API は使わない。**
+**Godot では法線の Y 軸を反転する必要がある**（本ツールは既定で反転して出力する）。
+詳細と Laigter を使う場合の注意は [docs/NORMALMAP.md](docs/NORMALMAP.md)。
 
 ## プロジェクトを追加する
 
@@ -186,3 +218,11 @@ Claude-PixelLab (このリポジトリ)          ゲーム本体リポジトリ
 
 命名規則・ディレクトリ規約・コミット規約・素材の品質基準は
 [docs/CONVENTIONS.md](docs/CONVENTIONS.md) を参照。
+ノーマルマップの扱いは [docs/NORMALMAP.md](docs/NORMALMAP.md) を参照。
+
+## テスト
+
+```bash
+python tests/test_guard.py          # 参照画像ガードの回帰テスト
+python tools/validate_fields.py --project iwato --strict
+```
