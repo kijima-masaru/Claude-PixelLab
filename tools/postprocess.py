@@ -41,6 +41,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--skip-align", action="store_true", help="グリッド整列を行わない。")
     parser.add_argument("--skip-deaa", action="store_true", help="アンチエイリアス除去を行わない。")
     parser.add_argument("--skip-trim", action="store_true", help="余白トリムを行わない。")
+    parser.add_argument("--strip-light-colors", action="store_true",
+                        help="光源色が地の素材に混入していたら、地の色系統の最近色へ置換する。"
+                             "本筋は color_image に光源色を渡さないことだが、保険として使える。")
     parser.add_argument("--overwrite", action="store_true", help="既存の完成品を上書きする。")
     parser.add_argument("--dry-run", action="store_true",
                         help="書き込まず、行う処理と出力先だけを表示する。")
@@ -62,6 +65,33 @@ def resolve_palette(cfg: dict) -> tuple:
     if not palette:
         raise SystemExit("パレットを読み取れませんでした: " + str(path))
     return palette, str(rel) + "（" + str(len(palette)) + "色）"
+
+
+def light_source_colors(cfg: dict, palette: list) -> tuple:
+    """パレットを「光源色」と「地の色」に分ける。(光源色, 地の色) を返す。
+
+    palette_spec.yaml の light_sources に載っている色が光源色である。
+    """
+    import yaml as _yaml
+
+    spec_path = config.project_dir(cfg["id"]) / "palettes" / "palette_spec.yaml"
+    if not spec_path.is_file():
+        return [], palette
+    with spec_path.open(encoding="utf-8") as fh:
+        spec = _yaml.safe_load(fh)
+    import colorsys
+
+    def to_rgb(c):
+        r, g, b = colorsys.hls_to_rgb((c["h"] % 360) / 360.0, c["l"] / 100.0, c["s"])
+        return tuple(int(round(v * 255)) for v in (r, g, b))
+
+    light = set()
+    for group in spec.get("light_sources", []):
+        for c in group.get("colors", []):
+            light.add(to_rgb(c))
+    forbidden = [c for c in palette if c in light]
+    allowed = [c for c in palette if c not in light]
+    return forbidden, allowed
 
 
 def collect_inputs(base: Path) -> list:
@@ -100,6 +130,9 @@ def process_one(path: Path, cfg: dict, palette, args: argparse.Namespace):
         image = imageops.remove_antialias(image, palette, max_colors)
     elif not args.skip_palette:
         image = imageops.apply_palette(image, palette, max_colors)
+    if getattr(args, "strip_light_colors", False) and palette:
+        forbidden, allowed = light_source_colors(cfg, palette)
+        image, _ = imageops.strip_colors(image, forbidden, allowed)
     if not args.skip_align:
         image = imageops.align_to_grid(image, tile, mode=args.grid_mode)
     return image

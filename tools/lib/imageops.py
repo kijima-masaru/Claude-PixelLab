@@ -59,15 +59,47 @@ def load_palette(path: Path) -> list:
     return unique
 
 
+def _srgb_to_lab(colour: tuple) -> tuple:
+    """sRGB を CIE Lab へ変換する（D65）。"""
+    def linear(v: float) -> float:
+        v /= 255.0
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (linear(c) for c in colour)
+    x = r * 0.4124 + g * 0.3576 + b * 0.1805
+    y = r * 0.2126 + g * 0.7152 + b * 0.0722
+    z = r * 0.0193 + g * 0.1192 + b * 0.9505
+
+    def f(t: float) -> float:
+        return t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+
+    fx, fy, fz = f(x / 0.95047), f(y), f(z / 1.08883)
+    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+
+
 def _nearest(colour: tuple, palette: list) -> tuple:
-    """パレット中で最も近い色を返す（重み付きユークリッド距離）。"""
-    r, g, b = colour
+    """パレット中で最も近い色を返す（CIE Lab のユークリッド距離）。
+
+    **重み付き RGB を使ってはならない。** 以前の実装は
+    `2R²+4G²+3B²` だったが、これは**中性の灰色を紫ランプへ吸着させる**。
+
+    実測（自作ゲームの舗装 32x32 を地の52色へ吸着し、吸着先の系統を数えた）:
+
+        元画像            中性 78.6% / 藍  7.4% / 紫 14.0%
+        重み付きRGB(旧)   中性 73.5% / 藍 20.3% / 紫  6.1%   ← 紫が残る
+        CIE Lab           中性 78.7% / 藍 21.3% / 紫  0.0%   ← 元の分布に最も近い
+
+    生成物は最初からパレット内に収まっており（PILOT_FINDINGS 第4節）、
+    後処理が実質無変換だったため、この欠陥はこれまで表面化しなかった。
+    **パレット外の画像を吸着させた瞬間に問題になる。** 詳細は第12節。
+    """
+    target = _srgb_to_lab(colour)
     best, best_d = palette[0], None
-    for pr, pg, pb in palette:
-        # 人間の感度に合わせた重み。緑を重く見る
-        d = 2 * (r - pr) ** 2 + 4 * (g - pg) ** 2 + 3 * (b - pb) ** 2
+    for candidate in palette:
+        lab = _srgb_to_lab(candidate)
+        d = sum((lab[i] - target[i]) ** 2 for i in range(3))
         if best_d is None or d < best_d:
-            best, best_d = (pr, pg, pb), d
+            best, best_d = candidate, d
     return best
 
 
@@ -102,6 +134,36 @@ def apply_palette(image: Image.Image, palette: list | None, max_colors: int) -> 
     out = out.convert("RGBA")
     out.putalpha(alpha)
     return out
+
+
+def strip_colors(image: Image.Image, forbidden: list, allowed: list) -> tuple:
+    """禁止した色を、許した色のうち最も近いものへ置き換える。
+
+    **保険である。** 本筋は color_image に渡さないことで最初から
+    出させないこと。ただし光源色が地形に混入すると
+    「彩度の高い色は光源にのみ許される」という原則が壊れるため、
+    後段でも落とせるようにしておく。
+    """
+    if not forbidden or not allowed:
+        return image, 0
+    forbidden_set = set(forbidden)
+    image = image.convert("RGBA")
+    out = image.copy()
+    px = out.load()
+    cache: dict = {}
+    changed = 0
+    for y in range(image.height):
+        for x in range(image.width):
+            r, g, b, a = px[x, y]
+            if a == ALPHA_TRANSPARENT or (r, g, b) not in forbidden_set:
+                continue
+            hit = cache.get((r, g, b))
+            if hit is None:
+                hit = _nearest((r, g, b), allowed)
+                cache[(r, g, b)] = hit
+            px[x, y] = (hit[0], hit[1], hit[2], a)
+            changed += 1
+    return out, changed
 
 
 def count_colors(image: Image.Image, ignore_transparent: bool = True) -> set:

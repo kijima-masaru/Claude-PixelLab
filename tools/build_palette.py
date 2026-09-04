@@ -284,6 +284,13 @@ def write_swatch_sheet(colours: list, spec: dict, ramps: dict, path) -> None:
     img.save(path)
 
 
+#: 地形素材に渡してよい系統。**光源色を含めない。**
+#: color_image は「どの色を使えるか」は縛るが「どこに使うか」は縛らない。
+#: 光源色を渡すと、光源が無い地面の境界にハイライトとして使われる
+#: （橙の縁取り問題。実測で確認）。渡さなければ構造的に起こり得ない。
+TERRAIN_RAMPS = ("ink", "concrete", "indigo", "violet", "green", "earth", "skin")
+
+
 def write_color_source(colours: list, path) -> None:
     """color_image に渡すための、64色ちょうどの PNG を書き出す。
 
@@ -304,7 +311,9 @@ def write_color_source(colours: list, path) -> None:
     side = grid * block
     img = Image.new("RGB", (side, side), (0, 0, 0))
     px = img.load()
-    for i, c in enumerate(colours[: grid * grid]):
+    pool = colours or []
+    for i in range(grid * grid):
+        c = pool[i % len(pool)]
         gx, gy = (i % grid) * block, (i // grid) * block
         for y in range(block):
             for x in range(block):
@@ -384,7 +393,14 @@ def main(argv=None) -> int:
     source = pal_dir / (spec["name"] + "_colors.png")
     write_color_source(colours, source)
     if source.is_file():
-        print("書き出し: " + str(source.relative_to(config.ROOT)) + "（color_image 用）")
+        print("書き出し: " + str(source.relative_to(config.ROOT)) + "（color_image 用・全64色）")
+
+    terrain = [c for c in colours if c["ramp"] in TERRAIN_RAMPS]
+    tsource = pal_dir / (spec["name"] + "_colors_terrain.png")
+    write_color_source(terrain, tsource)
+    if tsource.is_file():
+        print("書き出し: " + str(tsource.relative_to(config.ROOT))
+              + "（地形用・光源色を除く %d色）" % len(terrain))
 
     sheet = pal_dir / (spec["name"] + "_swatches.png")
     write_swatch_sheet(colours, spec, ramps, sheet)

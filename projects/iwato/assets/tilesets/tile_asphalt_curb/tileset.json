@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "name": "tile_asphalt_curb",
+  "note": "自作画像から tools/tile_from_texture.py で合成。**base64 は持たない。** 画像は同じディレクトリの PNG（Git LFS 管理）。",
+  "source": {
+    "tool": "tools/tile_from_texture.py",
+    "command": "python tools/tile_from_texture.py --project iwato --source \"refs/スクリーンショット 2026-08-29 221008.png\" --region 430,400,170,70 --region 660,370,170,60 --region 830,370,170,60 --name tile_asphalt_curb --out _work/tile_asphalt_curb --boundary-jitter 0.0",
+    "palette": "palettes/iwato_64_colors_terrain.png",
+    "seed": 0
+  },
+  "measured": {
+    "lower_roughness": 5.18,
+    "lower_periodicity": 0.59,
+    "upper_roughness": 5.87,
+    "upper_periodicity": 0.6,
+    "colours": 9,
+    "out_of_palette": 0
+  },
+  "tile_size": {
+    "width": 32,
+    "height": 32
+  },
+  "terrain_types": [
+    "lower",
+    "upper"
+  ],
+  "tiles": [
+    {
+      "name": "wang_0",
+      "file": "wang_0.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_1",
+      "file": "wang_1.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_2",
+      "file": "wang_2.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_3",
+      "file": "wang_3.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_4",
+      "file": "wang_4.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_5",
+      "file": "wang_5.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_6",
+      "file": "wang_6.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_7",
+      "file": "wang_7.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_8",
+      "file": "wang_8.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_9",
+      "file": "wang_9.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_10",
+      "file": "wang_10.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_11",
+      "file": "wang_11.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_12",
+      "file": "wang_12.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_13",
+      "file": "wang_13.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_14",
+      "file": "wang_14.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_15",
+      "file": "wang_15.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    }
+  ]
+}

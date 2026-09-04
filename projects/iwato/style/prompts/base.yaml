@@ -106,48 +106,81 @@ pilot:
       order: 1
       endpoint: /create-tileset
       cost_estimate_generations: "3〜4"
-      verifies: 日本の道路である記号が出るか。西洋意匠が混入しないか
-      # ★1回目の結果を受けた修正（2026-09-04）
-      # 共通プレフィックスを付けない。API が返したタイルセット名が
-      # lower と upper で同一になっており、100文字超の共通文で
-      # 素材の語が希釈されていた。画風は color_image と
-      # outline/shading/detail が担保しているため、記述には
-      # 素材の語だけを置く。
+      verifies: "**平坦な面を狙って作れるか。不規則な14本の運命を決める**"
+      # ★4回目（2026-09-04）: **方向を反転させる**
+      #
+      # 1〜3回目はいずれも「もっと質感を」と足す方向だった。結果:
+      #   1回目 lower 無地（周期性0.00 / ざらつき0.0）
+      #   2回目 lower 周期性0.97 / ざらつき18.5
+      #   3回目 lower 周期性1.00 / ざらつき9.3  ← レンガ壁になった
+      # 参考の実写アスファルトは **周期性0.64 / ざらつき2.8** であり、
+      # 生成物は3〜6倍も模様を付けすぎていた。
+      #
+      # **32px において「アスファルトらしさ」を作るのは模様ではない。**
+      # 色・白線・光の減衰の3つである。1mスケールの粒子は32pxでは見えない。
+      # 皮肉にも、失敗扱いした1回目の無地が方向として最も正しかった。
+      #
+      # したがって今回は**引く方向**で撃つ:
+      #   - shading を flat shading（最小）に落とす
+      #   - 記述からテクスチャの語を全て外す（cracked / gravel texture 等）
+      #   - 代わりに uniform / featureless / smooth を明示する
+      #   - 2つの地形の差は**色の明暗だけ**で付ける
       use_common_affix: false
+      shading: flat shading
+      detail: low detail
+      color_image: palettes/iwato_64_colors_terrain.png
       params:
         tile_size: { width: 32, height: 32 }
         mode: standard
         transition_size: 0.0
+      # ★5回目（2026-09-04）: **失敗。路面を後退させた。**
+      # 統制語彙から構造の含意（sidewalk 等）を外したのは正しく効き、
+      # 歩道はレンガ壁から正方格子に変わった。しかし同時に路面の記述を
+      # 語彙から組み立て直した際、**4回目で効いていた
+      # "no visible texture or markings" を落としてしまい**、
+      # ざらつきが 0.9 → 4.0、周期性が 0.85 → 0.98 に後退した。
+      # **成功した条件を保持しないまま別の変数を動かした。** 検証の失敗である。
+      #
+      # 判明した非対称（2回連続で同じ）:
+      #   lower 周期性: 4回目 0.85 → 5回目 0.98（条件次第で平坦にできる）
+      #   upper 周期性: 4回目 0.99 → 5回目 0.99（**何をしても変わらない**）
+      # → **同一平面上の2素材は成立しない。** upper は必ず単位に分割される。
+      #
+      # ★6回目（2026-09-04）: **最後の検証。変数は upper の1点だけ。**
+      #   - lower は4回目の文言を**一字一句そのまま**使う。組み立て直さない
+      #   - upper を「別素材」から「lower のほぼ同一バリエーション」に変える。
+      #     コンクリート／歩道にしない。同じアスファルトのわずかに明るい版
+      #   - shading / detail / パレット / guidance / outline は4回目のまま
+      # 6回目が失敗した場合、その場で7回目は撃たない。
+      # wang_0（全面 lower）1枚だけを地面タイルとして採る案へ移る。
+      # lower は fields.json の terrain_vocabulary["asphalt"] と同一。
+      # upper は**この検証専用の暫定文言**であり、まだ語彙には入れていない。
+      # 6回目が成功したら asphalt_light として語彙に昇格させ、
+      # 不規則14本の upper をこの形に置き換える。
+      # 失敗したら語彙に入れずに捨てる。**結果が出る前に fields.json の
+      # 地形の組を書き換えない。**
       lower_description: >-
-        cracked grey asphalt road surface with fine gravel texture
-        and a faded white painted line
+        a smooth uniform dark grey asphalt road surface, featureless and matte,
+        no visible texture or markings
       upper_description: >-
-        raised pale concrete pedestrian sidewalk
-        with a steel grating drain cover
+        a smooth uniform slightly lighter grey asphalt road surface,
+        featureless and matte, no visible texture or markings
       transition_description: ""
       intent_ja: |
-        1回目は lower が単一色で塗りつぶされ、アスファルトが出なかった。
-        原因は2つあり、この修正で両方を同時に検証する。
+        **模様を要求しない。** テクスチャの語を1つも入れない。
+        lower は4回目に成功した文言そのものであり、**変えてはならない。**
 
-        (1) プロンプトの希釈 — 共通プレフィックスを外し、素材の語だけにした。
-        (2) アプローチ — /create-tileset の lower/upper は「同一平面の2素材」
-            ではなく「高低差のある地形」のモデルである。アスファルトと縁石は
-            ほぼ同一平面なので合わない。**lower=車道の路面 / upper=一段高い歩道**
-            という高低差のある組に組み直した。縁石は境界として自動的に
-            描かれることを期待する。
+        upper は lower と語順・語彙まで揃え、
+        **違いを「dark grey」対「slightly lighter grey」の1語だけ**にした。
+        upper に構造が出るのは仕組みの制約として避けられないため、
+        出たとしても lower との差が小さければ格子が目立たない、という賭けである。
 
-        「raised」を明示して高低差を伝える。
-        **グレーチング（鋼製の溝蓋）は日本の道路の最も強い記号**であり、
-        これが出れば意匠は日本に寄っている。石畳が出たら失敗。
-      command: >-
-        python tools/client.py --project iwato --kind tileset
-        --name tile_asphalt_curb
-        --lower "<lower_description>" --upper "<upper_description>"
-        --outline lineless --shading "basic shading" --detail "low detail"
-        --guidance 9.5 --color-image palettes/iwato_64_colors.png
-        --seed 1001 --max-images 1 --max-cost 0.20
+        判定は数値の閾値ではなく画像で行う。見るのは:
+          - lower が4回目の水準（ざらつき0.9前後）を維持しているか
+          - upper に格子が出ても、lower との差が小さいか
+          - **4x4 に敷いて壁紙に見えないか** ← 最重要
+          - パレット外0色、光源色の混入0
 
-    # -----------------------------------------------------------------
     # tile_concrete_slab は保留にした（2026-09-04）。
     # コンクリート×アスファルトは同一平面の組であり、1・2回目で失敗した
     # 構成そのものである。既知の欠陥に 3〜4 generations を使うのを避ける。
@@ -264,6 +297,118 @@ pilot:
         isometric: false を明示し、no_background で透過を作る。
         質が落ちていないかも比較する。投影が直っても素材として
         劣化するなら、別の解決策が要る。
+
+    # ------------------------------------------------------------------
+    # 検証 7（2026-09-04）: **PixelLab が得意な素材の実力を見る**
+    #
+    # 1〜6回目はすべて不規則な地形（アスファルト・コンクリート）だった。
+    # **不得意な素材だけを6回見て、道具の実力を評価してきた。**
+    # 規則15本に属する瓦屋根を1本作り、得意な側の天井を知る。
+    #
+    # ★ shading を flat → detailed に上げる（**今回変える唯一の変数**）
+    #   3回目は detailed shading + low detail で「規則的なブロックの陰影」を
+    #   生み、アスファルトとしては失敗した（ざらつき lower 6.8 / upper 17.1）。
+    #   **しかし瓦は規則的なブロックそのものである。**
+    #   3回目の失敗は材質の不一致であって、パラメータの誤りではなかった。
+    #   同じ組み合わせ（detailed shading + low detail）を、
+    #   それが正解になる素材へ当てる。
+    #
+    #   flat shading のままでは瓦にならない。真上から見た瓦を瓦たらしめるのは
+    #   **桟の稜線と谷の影**であり、それは陰影でしか描けない。
+    #   ノーマルマップは実行時に光を足すだけで、焼かれた階調が無ければ
+    #   照らすものが無い（4回目の教訓）。
+    #
+    # ★ detail は low のまま維持する。6回目から変えない。
+    #   32px は約1m。瓦1枚は幅30cm 程度で、1タイルに3列×4段しか入らない。
+    #   detail を上げると1m四方に描けない密度を要求することになり、
+    #   1〜3回目で繰り返した「模様の付けすぎ」を再演する。
+    #
+    # ★ no visible texture or markings は**使わない**。
+    #   瓦は模様があるのが正しい。あの句は平坦な面のための道具である。
+    #
+    # ★ lower / upper の組み方: **瓦の平面 × 棟（むね）**
+    #   - 棟は瓦屋根で唯一の**本当に高い部分**であり、tileset_a（高低差あり・
+    #     実証済み）に当てはまる。分類 tileset_roof の初検証としても素直
+    #   - 第8節と第9節で問題になった「upper が単位に分割され、縁を持つ」性質が、
+    #     **棟では正しい描写になる。** 棟は実際に区切られた稜であり、縁を持ち、
+    #     影を落とす。**6回目の欠陥が、ここでは機能に変わる**かを見る
+    #   - 濃淡の組（6回目の方式）は安全だが、それでは
+    #     「得意な素材で何が出せるか」という問いに答えられない
+    #   - 樋は軒先の線であって面ではない。Wang の地形には向かない
+    # ------------------------------------------------------------------
+    - id: roof_kawara
+      order: 7
+      endpoint: /create-tileset
+      cost_estimate_generations: "3"
+      verifies: "**規則15本の見通し。PixelLab が得意な素材の天井**"
+      use_common_affix: false
+      shading: detailed shading      # ★ 6回目から変える唯一の変数
+      detail: low detail             # 6回目のまま
+      color_image: palettes/iwato_64_colors_terrain.png
+      params:
+        tile_size: { width: 32, height: 32 }
+        mode: standard
+        transition_size: 0.0
+      lower_description: >-
+        dark blue-grey japanese kawara clay roof tiles in even overlapping rows
+      upper_description: >-
+        a raised ridge of dark blue-grey capping tiles running along the roof crest
+      transition_description: ""
+      intent_ja: |
+        いぶし銀の瓦。パレットの indigo / ink ランプに素直に収まる色である。
+        「even overlapping rows」で瓦の重なりを、
+        「raised ridge / capping tiles / roof crest」で棟を指す。
+        共通接辞は付けない（第3節の希釈）。
+
+        判定:
+          - **瓦屋根として認識できるか**
+          - 敷き詰めて建物の屋根に見えるか
+          - 参考画像の質感（ざらつき2.8前後）に近づいているか
+          - パレット外0色、光源色0
+
+    # ------------------------------------------------------------------
+    # 検証 a-1（2026-09-04）: 高さのある単体物をタイルセットで作れるか
+    #
+    # 電柱は12フィールドで使う最頻の素材であり、**この1点の成否が
+    # 未解決16点の方針をほぼ決める。**
+    #
+    # タイルセットは均質な素材を作る仕組みなので、1点の物には
+    # 向かない可能性が高い。ただし角が1つだけ upper のタイルを
+    # 2x2 で並べると孤立した丸い塊が作れるため、
+    # 「上から見た電柱の断面」が得られる可能性がある。
+    # ------------------------------------------------------------------
+    - id: verify_utility_pole_tileset
+      order: 6
+      endpoint: /create-tileset
+      cost_estimate_generations: "3〜4"
+      verifies: "**1点の物をタイルセットで作れるか。未解決16点の方針を決める**"
+      use_common_affix: false
+      params:
+        tile_size: { width: 32, height: 32 }
+        mode: standard
+        transition_size: 0.0
+      lower_description: >-
+        cracked grey asphalt road surface with fine gravel texture
+      upper_description: >-
+        the top of a grey concrete utility pole seen from directly above,
+        a round cross-section with a dark cap and cable brackets
+      transition_description: ""
+      intent_ja: |
+        lower を地面、upper を「真上から見た電柱の上面」にする。
+        全面 upper のタイルは電柱の材質が一面に広がるだけで使えないが、
+        **角が1つだけ upper のタイルを 2x2 で並べれば孤立した丸い塊**
+        になり、それが電柱の断面として使える可能性がある。
+
+        判定軸:
+          1. 真上見下ろし（正射影）になっているか
+          2. **電柱として認識できるか**
+          3. 16タイルのうち実際に使えるのが何枚か
+             （1点の物なら大半が無駄になるはず）
+          4. パレット適合
+
+        3番目が重要である。**「作れる」と「作るべき」は別問題**であり、
+        1点の物のために16タイル分を使うのが非効率なら、
+        作れたとしても採用しない判断があり得る。
 
 # =====================================================================
 # パイロットで結論を出す確認手順
