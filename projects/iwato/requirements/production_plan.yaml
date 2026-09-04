@@ -1,0 +1,311 @@
+# =====================================================================
+# 生産計画 — パイロットの知見を反映した素材の作り方
+#
+# 何を作るか（点数）は fields.json と ASSETS_NEEDED.md が持つ。
+# **このファイルは「どう作るか」を持つ。**
+#
+# 根拠: docs/PILOT_FINDINGS.md
+# 集計: python tools/aggregate_assets.py --project iwato --plan
+# =====================================================================
+
+schema_version: 1
+project_id: iwato
+based_on: パイロット10 generations の実測（2026-09-04）
+
+# ---------------------------------------------------------------------
+# 分類の軸
+#   投影の問題は「高さのある物」にだけ起きる（PILOT_FINDINGS 第1節）。
+#   したがってオブジェクトは**高さ**で仕分ける。
+# ---------------------------------------------------------------------
+classes:
+  tileset_a:
+    label: 地形ペア
+    endpoint: /create-tileset
+    rule: 高低差または明確な材質段差がある。境界線が「段差の陰影」として意味を持つ
+    status: 実証済み
+  tileset_b:
+    label: 平坦な2素材
+    endpoint: /create-tileset
+    rule: 同一平面。境界線が「見切り材・敷居・目地」として意味を持つ場合のみ使う
+    status: 未検証（境界線が邪魔にならないかを見る必要がある）
+  tileset_roof:
+    label: 屋根タイルセット
+    endpoint: /create-tileset
+    rule: 建物は屋根の面である。真上からは壁がほとんど見えない
+    status: 未検証
+  deco:
+    label: 地面の装飾
+    endpoint: /map-objects
+    layer: ground_detail
+    rule: 完全に平坦。真上でもアイソメでも形が変わらないため投影の影響を受けない
+    status: 理屈上は安全。未検証
+  object_low:
+    label: 低い単体物
+    endpoint: /map-objects
+    layer: objects
+    rule: 高さ1タイル程度。投影の歪みは小さいはずだが**実測していない**
+    status: 未検証
+  object_tall:
+    label: 高い単体物
+    endpoint: 未定
+    layer: objects
+    rule: 高さ2タイル以上。**パイロットで投影の破綻を実証した唯一の未解決領域**
+    status: 未解決
+
+# ---------------------------------------------------------------------
+# 持ち越しの論点への回答
+# ---------------------------------------------------------------------
+resolved_questions:
+
+  - id: flat_floor_endpoint
+    question: 分類Bの「床タイル1種」は、どのエンドポイントで作るのか
+    answer: |
+      **/create-tileset を、ほぼ同じ2素材の組で使う。**
+      lower と upper に「同じ床の微妙な差」を書く。
+      例: lower="worn pale linoleum floor"
+          upper="slightly darker scuffed linoleum floor"
+      こうすると16タイルが「同じ床の濃淡バリエーション」になり、
+      1タイルの繰り返しより反復が目立たない床が得られる。
+      境界線は出るが、素材差が小さければ目立たない。
+    rationale: |
+      単一素材のタイルを1枚だけ作る手段が無い。/map-objects で作ると
+      投影が保証されず、そもそも「タイル」として繋がる保証もない。
+      /create-tileset なら正射影と接続が保証されている。
+    status: 未検証。分類Bの1本で確かめる
+
+  - id: deco_layer
+    question: タイル化した白線・グレーチング等は ground と objects のどちらに置くか
+    answer: |
+      **ground に置く。** 具体的には TileMapLayer をもう1枚重ね、
+      `ground` の上に `ground_detail` を敷く。
+    rationale: |
+      - プレイヤーはその上を歩く。objects に置くとプレイヤーと同じ高さの
+        物として扱われ、Y ソートで前後関係が発生してしまう
+      - マンホールも白線も**地面の一部**であり、地面と同じ平面にある
+      - 接地影を落とす対象でもない
+      レイヤー構成は ground / **ground_detail** / objects / overhead の4層になる。
+    status: 確定
+
+  - id: contact_shadow
+    question: 接地影は屋根タイルに焼き込むのか、実行時に落とすのか
+    answer: |
+      **長く伸びる落ち影は Godot 側で実行時に落とす。**
+      **接地部分の1〜2px だけを素材に描く。**
+    rationale: |
+      「暗さと受光面は実行時に作る」（PILOT_FINDINGS 第5節）と整合させる。
+      パイロットの建物にはアイソメ前提の長い落ち影が焼き込まれており、
+      真上見下ろしでは意味を持たなかった。時間帯で影の向きと長さが
+      変わる以上、焼き込むと4時間帯分の素材が必要になり破綻する。
+
+      ただし接地影を完全に無くすと物が浮いて見える。
+      **「そこに物がある」ことを示す最小限の1〜2px だけ**は素材に描く。
+      これは時間帯で変わらない。
+    status: 確定
+
+# ---------------------------------------------------------------------
+# タイルセットの分類
+#   split: その素材から外して装飾タイルへ移す「特徴」
+# ---------------------------------------------------------------------
+tilesets:
+  tile_soil_grass:     { class: tileset_a, note: 土に草が生える。草は土より高い }
+  tile_asphalt_curb:   { class: tileset_a, note: "車道 × 一段高い歩道。パイロットで実証済み", split: deco_grating }
+  tile_concrete_grass: { class: tileset_a, note: コンクリートの縁から草 }
+  tile_gravel_grass:   { class: tileset_a, note: 砂利と草 }
+  tile_forest_floor:   { class: tileset_a, note: 林床と下草 }
+  tile_asphalt_grass:  { class: tileset_a, note: アスファルトの割れ目から草 }
+  tile_infield:        { class: tileset_a, note: 芝と土のグラウンド }
+  tile_stone_steps:    { class: tileset_a, note: 石段。実際に段差がある }
+  tile_bridge_deck:    { class: tileset_a, note: "橋面 × 縁石" }
+  tile_dead_orchard:   { class: tileset_a, note: 梅林の地面と草 }
+  tile_earthwork:      { class: tileset_a, note: "土塁 × 空堀。実際に高低差がある" }
+  tile_embankment:     { class: tileset_a, note: "法面の草 × 法枠" }
+  tile_paddy_ridge:    { class: tileset_a, note: "水田 × 畦。畦は水面より高い" }
+  tile_river_gravel:   { class: tileset_a, note: "川面 × 河原" }
+  tile_ruin_stone:     { class: tileset_a, note: 崩れた礎石と苔。礎石に高さがある }
+  tile_stone_moss:     { class: tileset_b, note: 石畳と苔。同一平面。目地として境界線が意味を持つ }
+  tile_linoleum_wood:  { class: tileset_b, note: 屋内床。敷居として境界線が意味を持つ }
+  tile_wood_corridor:  { class: tileset_b, note: 屋内床。同上 }
+  tile_tatami_wood:    { class: tileset_b, note: 畳と板の間。敷居がある }
+  tile_concrete_slab:  { class: tileset_b, note: 高架下の床。同一平面 }
+  tile_parking_line:   { class: tileset_b, note: "**白線は特徴。素材から外す。** 単一素材の駐車場にする", split: deco_line_parking }
+  tile_gym_floor:      { class: tileset_b, note: "**ラインは特徴。素材から外す。** 単一素材の体育館床にする", split: deco_line_gym }
+
+# ---------------------------------------------------------------------
+# 屋根タイルセット
+#   建物14点を、屋根の材質ごとにまとめる。1棟につき1本ではない。
+# ---------------------------------------------------------------------
+roof_tilesets:
+  roof_kawara:
+    class: tileset_roof
+    note: 瓦屋根。和風住宅・寺社・駄菓子屋
+    replaces: [obj_house_facade_showa, obj_shop_facade_shutter, obj_wooden_hall_facade]
+  roof_corrugated:
+    class: tileset_roof
+    note: トタン屋根。農機具小屋・古い商店
+    replaces: [obj_farm_shed]
+  roof_flat_concrete:
+    class: tileset_roof
+    note: 陸屋根。団地・市民センター・交番・コンビニ・ロードサイド店
+    replaces: [obj_danchi_facade, obj_civic_facade, obj_police_box, obj_conveni_front,
+               obj_shop_facade_roadside, obj_house_facade_newtown]
+  roof_wooden_school:
+    class: tileset_roof
+    note: 木造校舎の屋根。旧校舎・体育館
+    replaces: [obj_wooden_school_facade, obj_gym_facade]
+  roof_shrine:
+    class: tileset_roof
+    note: 社殿の屋根。神社・観音堂
+    replaces: [obj_shrine_facade, obj_shrine_small]
+
+# ---------------------------------------------------------------------
+# 地面の装飾（ground_detail レイヤー）
+#   タイルセットから外した特徴と、もともと平坦だったオブジェクト。
+# ---------------------------------------------------------------------
+deco:
+  deco_line_parking:  { class: deco, note: 駐車場の白線。tile_parking_line から分離 }
+  deco_line_gym:      { class: deco, note: 体育館のライン。tile_gym_floor から分離 }
+  deco_grating:       { class: deco, note: グレーチング。tile_asphalt_curb から分離 }
+  deco_manhole:       { class: deco, note: マンホール蓋。新規。日本の路面の記号 }
+  deco_road_marking:  { class: deco, note: 停止線・横断歩道などの路面標示。新規 }
+  obj_side_ditch_cover:  { class: deco, note: 側溝の蓋。もともと平坦 }
+  obj_foundation_stone:  { class: deco, note: 礎石。地面すれすれ }
+  obj_irrigation_channel: { class: deco, note: 用水路。地面に彫られた溝 }
+
+# ---------------------------------------------------------------------
+# 未解決 — 高さのある単体物
+#   **ここだけが未解決である。規模は24点。**
+#   次の検証: obj_vending_machine を /create-tileset で作れるか（3〜4 generations）
+# ---------------------------------------------------------------------
+unresolved:
+  count: 24
+  note: |
+    パイロットで投影の破綻を実証した唯一の領域。
+    /map-objects はアイソメ、/create-image-pixflux は正面立面になる。
+
+    検討中の案:
+      (b) /create-tileset で単一素材として作り、必要な形に切り出す
+      (d) 手描き／別ツール
+      (e) タイルで表現できるものはタイルへ寄せ、真に単体の物だけを別手段で作る
+  candidates_for_tiling: |
+    24点のうち、タイルへ寄せられる可能性があるもの:
+      obj_noise_barrier   … 防音壁は連続する壁。タイルセット向き
+      obj_block_wall      … 同上（現在は low に分類）
+      obj_wire_fence      … 同上
+      obj_guardrail       … 同上
+      obj_backstop        … 面として扱える
+    連続する構造物はタイルセットに向く。**単体で立つ物だけが本当に未解決。**
+
+# ---------------------------------------------------------------------
+# 全タイルセットの特徴混入チェック（PILOT_FINDINGS 第2節）
+#   「たまにある特徴」を素材の記述に含めていないか。
+# ---------------------------------------------------------------------
+feature_audit:
+  checked: 22
+  found: 3
+  items:
+    - { tileset: tile_asphalt_curb, feature: グレーチング, action: deco_grating へ分離 }
+    - { tileset: tile_parking_line, feature: 白線, action: deco_line_parking へ分離 }
+    - { tileset: tile_gym_floor,    feature: 体育館のライン, action: deco_line_gym へ分離 }
+  clean: |
+    残り19本は均質な素材どうしの組であり、特徴を含んでいない。
+    ただし**記述を書く段階で再度点検すること。** fields.json の
+    terrain_vocabulary には特徴語が含まれていないが、
+    プロンプトを書くときに「白線」「マンホール」等を足さないこと。
+
+# ---------------------------------------------------------------------
+# オブジェクト91点の高さ分類
+#   投影の問題は高さのある物にだけ起きるため、高さで仕分ける。
+#   flat=地面に貼る / low=1タイル程度 / tall=2タイル以上 / building=建物
+# ---------------------------------------------------------------------
+object_heights:
+  obj_agricultural_machine:    object_low
+  obj_air_conditioner_outdoor: object_low
+  obj_backstop:                object_tall
+  obj_bench:                   object_low
+  obj_bicycle:                 object_low
+  obj_bicycle_rack:            object_low
+  obj_blackboard:              object_low
+  obj_block_wall:              object_low
+  obj_bookshelf:               object_low
+  obj_bridge_pier:             object_tall
+  obj_bridge_railing:          object_low
+  obj_bulletin_board:          object_tall
+  obj_bus_stop_pole:           object_tall
+  obj_cedar_trunk:             object_tall
+  obj_chestnut_tree:           object_tall
+  obj_civic_facade:            roof
+  obj_classroom_window:        object_low
+  obj_conveni_front:           roof
+  obj_corridor_door:           object_low
+  obj_danchi_facade:           roof
+  obj_electric_fan:            object_low
+  obj_ema_rack:                object_low
+  obj_fallen_log:              object_low
+  obj_farm_shed:               roof
+  obj_fire_extinguisher:       object_low
+  obj_flag_pole:               object_tall
+  obj_folded_mat:              object_low
+  obj_foundation_stone:        deco
+  obj_goal_post:               object_tall
+  obj_grave_marker:            object_low
+  obj_guardrail:               object_low
+  obj_gym_facade:              roof
+  obj_gym_window_high:         object_low
+  obj_hedge:                   object_low
+  obj_house_facade_newtown:    roof
+  obj_house_facade_showa:      roof
+  obj_irrigation_channel:      deco
+  obj_kei_car:                 object_low
+  obj_komainu:                 object_low
+  obj_laundry_pole:            object_low
+  obj_low_table:               object_low
+  obj_mailbox:                 object_low
+  obj_noise_barrier:           object_tall
+  obj_offering_box:            object_low
+  obj_ox_statue:               object_low
+  obj_persimmon_tree:          object_tall
+  obj_planter_box:             object_low
+  obj_plum_tree_bare:          object_tall
+  obj_police_box:              roof
+  obj_potted_plant:            object_low
+  obj_public_phone:            object_tall
+  obj_rice_plant_cluster:      object_low
+  obj_river_marker:            object_low
+  obj_road_closure_sign:       object_low
+  obj_road_mirror:             object_tall
+  obj_room_interior_stopped:   object_low
+  obj_school_desk:             object_low
+  obj_school_gate:             object_tall
+  obj_shoe_locker:             object_low
+  obj_shop_facade_roadside:    roof
+  obj_shop_facade_shutter:     roof
+  obj_shrine_facade:           roof
+  obj_shrine_small:            roof
+  obj_side_ditch_cover:        deco
+  obj_signboard_pole:          object_tall
+  obj_signboard_shutter:       object_low
+  obj_stage_curtain:           object_low
+  obj_stair_handrail:          object_low
+  obj_stone_buddha:            object_low
+  obj_stone_lantern:           object_low
+  obj_stone_marker:            object_low
+  obj_street_light_led:        object_tall
+  obj_street_light_mercury:    object_tall
+  obj_swing_set:               object_tall
+  obj_temple_bell:             object_low
+  obj_temple_gate:             object_tall
+  obj_torii:                   object_tall
+  obj_traffic_cone:            object_low
+  obj_tunnel_light:            object_tall
+  obj_upright_piano:           object_low
+  obj_utility_pole:            object_tall
+  obj_vending_machine:         object_tall
+  obj_vending_machine_old:     object_tall
+  obj_wall_bars:               object_low
+  obj_wall_clock:              object_low
+  obj_water_basin:             object_low
+  obj_water_fountain:          object_low
+  obj_water_tank:              object_low
+  obj_wire_fence:              object_low
+  obj_wooden_hall_facade:      roof
+  obj_wooden_school_facade:    roof

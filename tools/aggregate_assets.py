@@ -40,6 +40,95 @@ UNIT_COST_USD = {
 ATTEMPT_FACTOR = 3
 
 
+#: 生産計画の分類ごとの、1点あたりの消費 generations。
+#: PILOT_FINDINGS.md の実測に基づく。
+CLASS_COST = {
+    "tileset_a": (3, 4),
+    "tileset_b": (3, 4),
+    "tileset_roof": (3, 4),
+    "deco": (1, 1),
+    "object_low": (1, 1),
+    "object_tall": (0, 0),      # 未解決のため見積もらない
+}
+
+#: 採用1点あたりの平均試行回数。
+PLAN_ATTEMPTS = 3
+
+
+def load_plan(project_id: str):
+    """production_plan.yaml を読む。無ければ None。"""
+    try:
+        import yaml
+    except ImportError:
+        return None
+    path = config.project_dir(project_id) / "requirements" / "production_plan.yaml"
+    if not path.is_file():
+        return None
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh)
+
+
+def report_plan(project_id: str, data: dict, plan: dict, attempts: int) -> None:
+    """生産計画に沿って、作り方別の点数と消費を集計する。"""
+    agg = aggregate(data)
+    heights = plan.get("object_heights") or {}
+
+    tilesets = plan.get("tilesets") or {}
+    roofs = plan.get("roof_tilesets") or {}
+    deco = plan.get("deco") or {}
+
+    # タイルセット本数
+    n_a = sum(1 for v in tilesets.values() if v.get("class") == "tileset_a")
+    n_b = sum(1 for v in tilesets.values() if v.get("class") == "tileset_b")
+    n_roof = len(roofs)
+
+    # オブジェクトを高さで仕分ける
+    deco_ids = set(deco)
+    replaced = {o for r in roofs.values() for o in (r.get("replaces") or [])}
+    buckets = {"deco": 0, "object_low": 0, "object_tall": 0, "roof": 0}
+    for asset in agg["objects"]:
+        if asset in deco_ids:
+            buckets["deco"] += 1
+        elif asset in replaced:
+            buckets["roof"] += 1
+        else:
+            buckets[heights.get(asset, "object_low")] =                 buckets.get(heights.get(asset, "object_low"), 0) + 1
+    n_deco = buckets["deco"] + sum(1 for k in deco if k.startswith("deco_"))
+    n_ovh = len(agg["overheads"])
+
+    rows = [
+        ("タイルセット A（地形ペア）", n_a, "tileset_a", "実証済み"),
+        ("タイルセット B（平坦2素材）", n_b, "tileset_b", "未検証"),
+        ("屋根タイルセット", n_roof, "tileset_roof", "未検証"),
+        ("地面の装飾（ground_detail）", n_deco, "deco", "投影の影響なし"),
+        ("低い単体物（objects）", buckets.get("object_low", 0), "object_low", "未検証"),
+        ("overhead", n_ovh, "object_low", "未検証"),
+        ("高い単体物（objects）", buckets.get("object_tall", 0), "object_tall", "**未解決**"),
+    ]
+
+    print("=" * 88)
+    print("生産計画に沿った再集計（作り方別）")
+    print("=" * 88)
+    print("%-30s %6s %10s %18s  %s" % ("区分", "点数", "コール", "generations", "状態"))
+    print("-" * 88)
+    lo_t = hi_t = calls_t = pts_t = 0
+    for label, n, cls, state in rows:
+        lo, hi = CLASS_COST[cls]
+        calls = n * attempts
+        glo, ghi = calls * lo, calls * hi
+        lo_t += glo; hi_t += ghi; calls_t += calls; pts_t += n
+        cost = "未定" if cls == "object_tall" else "%d - %d" % (glo, ghi)
+        print("%-30s %6d %10d %18s  %s" % (label, n, calls, cost, state))
+    print("-" * 88)
+    print("%-30s %6d %10d %18s" % ("小計（未解決を除く）", pts_t, calls_t, "%d - %d" % (lo_t, hi_t)))
+    print("")
+    print("  タイルセットから得られるタイル: %d 枚（1本16タイル）" % ((n_a + n_b + n_roof) * 16))
+    print("")
+    print("  ※ UI とアイコンは fields.json に含まれない。ASSETS_NEEDED.md を参照。")
+    print("  ※ 高い単体物 %d 点は作り方が未解決のため見積もらない。"
+          % buckets.get("object_tall", 0))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aggregate_assets.py",
@@ -48,6 +137,8 @@ def build_parser() -> argparse.ArgumentParser:
     config.add_project_arg(parser)
     parser.add_argument("--format", default="table", choices=["table", "markdown", "json"],
                         help="出力形式（既定: table）。")
+    parser.add_argument("--plan", action="store_true",
+                        help="production_plan.yaml に沿って作り方別に集計する。")
     parser.add_argument("--attempts", type=int, default=ATTEMPT_FACTOR, metavar="N",
                         help="採用1点あたりの平均生成回数の見込み（既定: %d）。" % ATTEMPT_FACTOR)
     return parser
@@ -185,6 +276,13 @@ def main(argv=None) -> int:
     config.load_project(args.project)
     data = load_fields(args.project)
     agg = aggregate(data)
+
+    if args.plan:
+        plan = load_plan(args.project)
+        if not plan:
+            raise SystemExit("production_plan.yaml がありません。")
+        report_plan(args.project, data, plan, args.attempts)
+        return 0
 
     if args.format == "json":
         payload = {

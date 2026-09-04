@@ -209,13 +209,11 @@ def call(endpoint: str, payload: dict, provider: str = "pixellab",
     job_id = body.get("background_job_id")
     if status == 202 or job_id:
         body, poll_used = _poll(job_id, api_key, verbose=verbose)
-        for key in used:
-            used[key] += poll_used.get(key, 0.0)
-        # ジョブ完了後の応答にも使用量が載ることがある
+        # **積算しない。** ポーリング中の各応答にも usage が載るため、
+        # 足し合わせると実際の倍以上になる（実測で確認）。
+        # 完了応答の billing_usage が正典であり、それを採る。
         final = usage_info(body)
-        for key in used:
-            if final.get(key) and not used[key]:
-                used[key] = final[key]
+        used = final if any(final.values()) else (poll_used or used)
 
     return body, used
 
@@ -236,9 +234,9 @@ def _poll(job_id: str, api_key: str, verbose: bool = True) -> tuple:
             waited += POLL_INTERVAL_SECONDS
             continue
         _raise_for_status(status, body, "background-jobs")
-        used = usage_info(body)
-        for key in total:
-            total[key] += used.get(key, 0.0)
+        seen = usage_info(body)
+        if any(seen.values()):
+            total = seen   # 積算せず、最後に見た値を保持する
         state = str(body.get("status") or "").lower()
         if state in ("completed", "succeeded", "success"):
             return body.get("last_response") or body, total
@@ -255,6 +253,25 @@ def _poll(job_id: str, api_key: str, verbose: bool = True) -> tuple:
         "生成ジョブが %.0f 秒以内に完了しませんでした。job_id=%s"
         % (POLL_TIMEOUT_SECONDS, job_id)
     )
+
+
+def fetch_tileset(tileset_id: str, provider_name: str = "pixellab",
+                  verbose: bool = True) -> dict:
+    """生成済みのタイルセットを取得する。
+
+    /create-tileset の完了応答には画像が含まれず、tileset_id だけが返る。
+    タイルは GET /tilesets/{id} で別途取得する（実測で確認）。
+    **すでに生成・課金済みのものを取りに行くだけなので、追加の消費はない。**
+    """
+    api_key = resolve_api_key(provider_name)
+    url = BASE_URL + "/tilesets/" + str(tileset_id)
+    status, body = _request(url, api_key, None, method="GET")
+    _raise_for_status(status, body, "tilesets/" + str(tileset_id))
+    # タイルは body["tileset"]["tiles"] の下にある（実測で確認）
+    inner = body.get("tileset") or body
+    if verbose:
+        print("  タイルセットを取得: %d タイル" % len(inner.get("tiles") or []))
+    return inner
 
 
 def extract_images(body: dict) -> list:

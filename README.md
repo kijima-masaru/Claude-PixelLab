@@ -219,6 +219,10 @@ Claude-PixelLab (このリポジトリ)          ゲーム本体リポジトリ
 
 ## 規約
 
+**素材を作る前に [docs/PILOT_FINDINGS.md](docs/PILOT_FINDINGS.md) を読むこと。**
+エンドポイントごとに投影が違う、タイルセットに書いた特徴は全タイルに複製される、
+といった実測の知見がまとまっている。知らずに進むと作り直しになる。
+
 命名規則・ディレクトリ規約・コミット規約・素材の品質基準は
 [docs/CONVENTIONS.md](docs/CONVENTIONS.md) を参照。
 ノーマルマップの扱いは [docs/NORMALMAP.md](docs/NORMALMAP.md) を参照。

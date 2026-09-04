@@ -107,22 +107,38 @@ pilot:
       endpoint: /create-tileset
       cost_estimate_generations: "3〜4"
       verifies: 日本の道路である記号が出るか。西洋意匠が混入しないか
+      # ★1回目の結果を受けた修正（2026-09-04）
+      # 共通プレフィックスを付けない。API が返したタイルセット名が
+      # lower と upper で同一になっており、100文字超の共通文で
+      # 素材の語が希釈されていた。画風は color_image と
+      # outline/shading/detail が担保しているため、記述には
+      # 素材の語だけを置く。
+      use_common_affix: false
       params:
         tile_size: { width: 32, height: 32 }
         mode: standard
         transition_size: 0.0
       lower_description: >-
-        cracked grey asphalt road surface, worn tarmac with fine gravel texture,
-        faded white painted line, modern Japanese street, damp from humidity
+        cracked grey asphalt road surface with fine gravel texture
+        and a faded white painted line
       upper_description: >-
-        pale concrete kerb and roadside gutter with a steel grating drain cover,
-        modern Japanese street edge, weathered concrete
+        raised pale concrete pedestrian sidewalk
+        with a steel grating drain cover
       transition_description: ""
       intent_ja: |
-        下地形をアスファルト、上地形を縁石＋側溝＋グレーチングにする。
+        1回目は lower が単一色で塗りつぶされ、アスファルトが出なかった。
+        原因は2つあり、この修正で両方を同時に検証する。
+
+        (1) プロンプトの希釈 — 共通プレフィックスを外し、素材の語だけにした。
+        (2) アプローチ — /create-tileset の lower/upper は「同一平面の2素材」
+            ではなく「高低差のある地形」のモデルである。アスファルトと縁石は
+            ほぼ同一平面なので合わない。**lower=車道の路面 / upper=一段高い歩道**
+            という高低差のある組に組み直した。縁石は境界として自動的に
+            描かれることを期待する。
+
+        「raised」を明示して高低差を伝える。
         **グレーチング（鋼製の溝蓋）は日本の道路の最も強い記号**であり、
         これが出れば意匠は日本に寄っている。石畳が出たら失敗。
-        「damp from humidity」で乾いた色になるのを防ぐ。
       command: >-
         python tools/client.py --project iwato --kind tileset
         --name tile_asphalt_curb
@@ -132,51 +148,51 @@ pilot:
         --seed 1001 --max-images 1 --max-cost 0.20
 
     # -----------------------------------------------------------------
-    - id: tile_concrete_slab
+    # tile_concrete_slab は保留にした（2026-09-04）。
+    # コンクリート×アスファルトは同一平面の組であり、1・2回目で失敗した
+    # 構成そのものである。既知の欠陥に 3〜4 generations を使うのを避ける。
+    # 暗部の検証は、より安価で同じ問いに答えられるオブジェクトへ置き換えた。
+    # タイルセットの接続は2回とも完全に成立しており、確認済みである。
+    - id: obj_bridge_pier
       order: 2
-      endpoint: /create-tileset
-      cost_estimate_generations: "3〜4"
-      verifies: "**暗所が成立するか。最大の未検証項目**"
+      endpoint: /map-objects
+      cost_estimate_generations: "1"
+      verifies: "**パレットの暗部が機能するか。常時暗い場所が成立するか**"
+      use_common_affix: false
       params:
-        tile_size: { width: 32, height: 32 }
-        mode: standard
-        transition_size: 0.0
-      lower_description: >-
-        dark stained concrete floor slab under a highway viaduct,
-        deep shadow, very low light, damp concrete with water stains,
-        modern Japanese infrastructure
-      upper_description: >-
-        cracked grey asphalt patch meeting the concrete slab,
-        dark and shadowed, worn edge
-      transition_description: ""
+        image_size: { width: 64, height: 64 }
+      detail: medium detail
+      description: >-
+        a massive square concrete bridge pier under a highway viaduct,
+        seen from directly above, deep shadow with almost no light,
+        damp stained concrete, modern Japanese infrastructure
       intent_ja: |
-        F03 高架下。**時間帯によらず暗い、本質的な暗所**である。
-        tile_asphalt_curb と材質が同系（コンクリート）なので、
-        **明暗の変数だけを分離して比較できる**。
-        「deep shadow」「very low light」を明示し、暗い状態そのものを
-        生成させる。ここでパレットの暗部（夜の実質38色）が
-        機能するかを見る。
-      command: >-
-        python tools/client.py --project iwato --kind tileset
-        --name tile_concrete_slab
-        --lower "<lower_description>" --upper "<upper_description>"
-        --outline lineless --shading "basic shading" --detail "low detail"
-        --guidance 9.5 --color-image palettes/iwato_64_colors.png
-        --seed 1002 --max-images 1 --max-cost 0.20
+        暗所の検証を、タイルセットではなくオブジェクトで行う。
+        見たいのは**パレットの暗部10段が識別可能な明度差を保っているか**
+        であって、タイルセットの接続ではない。接続は確認済みである。
 
-    # -----------------------------------------------------------------
+        橋脚を選んだ理由:
+          - F03 高架下は「時間帯によらず暗い」本質的な暗所である
+          - 単一素材（コンクリート）なので階調だけを分離して検証できる
+          - 塊としての量感があり、形を読ませるには暗部の複数段が要る
+          - パレットで最大面積を占める concrete ランプ（8段）を直接試せる
+
     - id: obj_vending_machine
       order: 3
       endpoint: /map-objects
       cost_estimate_generations: "1"
       verifies: 光源の彩度。本作で最も重要な素材
+      # 共通接辞を外した。タイルセットで判明した希釈の教訓を適用する。
+      # 画風は color_image と outline/shading/detail が担保している。
+      use_common_affix: false
+      detail: medium detail
       params:
         image_size: { width: 64, height: 64 }
       description: >-
-        a Japanese roadside drink vending machine seen from directly above,
-        lit display panel glowing pale cyan-green in the dark,
-        the glow spilling onto the asphalt around its base,
-        rows of canned drinks behind glass, modern rural Japan at night
+        a Japanese roadside drink vending machine seen from directly above
+        at night, its lit display panel glowing pale cyan-green,
+        the glow spilling onto the dark asphalt around its base,
+        modern rural Japan
       intent_ja: |
         **本作で最も重要な素材。** 彩度の高い色が許される唯一の対象。
         「lit display panel glowing pale cyan-green」で光源そのものを、
@@ -198,13 +214,15 @@ pilot:
       endpoint: /map-objects
       cost_estimate_generations: "1"
       verifies: 真上見下ろしで建物の高さをどう表現するか。**アプローチの検証**
+      use_common_affix: false
+      detail: medium detail
       params:
         image_size: { width: 128, height: 128 }
       description: >-
-        a small two-storey Japanese community centre building
-        seen from directly above, flat roof with air conditioning units
-        and a water tank, pale mortar walls barely visible at the south edge,
-        cast shadow falling to the south, modern rural Japan
+        a small two-storey Japanese community centre seen from directly above,
+        flat roof with air conditioning units and a water tank,
+        pale mortar wall visible only at the south edge,
+        long cast shadow to the south
       intent_ja: |
         **これはアプローチの検証である。** 建物を 128px の単体スプライトで
         作れるのか、それともタイルで組むべきなのかを判断する。
@@ -222,6 +240,30 @@ pilot:
         --outline lineless --shading "basic shading" --detail "medium detail"
         --guidance 9.5 --color-image palettes/iwato_64_colors.png
         --seed 1004 --max-images 1 --max-cost 0.20
+
+    # 投影の検証（2026-09-04）。/map-objects は view: high top-down を送っても
+    # アイソメトリックで出力される。/create-image-pixflux にだけ isometric
+    # パラメータが存在するため、それを false にして比較する。
+    # **記述・サイズ・パレットは obj_vending_machine と完全に同一にし、
+    # 変数を投影だけに絞る。**
+    - id: obj_vending_machine_pixflux
+      order: 5
+      endpoint: /create-image-pixflux
+      cost_estimate_generations: "1"
+      verifies: "**真上見下ろし（正射影）が出せるか。投影の検証**"
+      use_common_affix: false
+      detail: medium detail
+      params:
+        image_size: { width: 64, height: 64 }
+        isometric: false
+        no_background: true
+      description: >-
+        a Japanese roadside drink vending machine seen from directly above at night, its lit display panel glowing pale cyan-green, the glow spilling onto the dark asphalt around its base, modern rural Japan
+      intent_ja: |
+        /map-objects 版と記述を1文字も変えていない。投影だけが変数である。
+        isometric: false を明示し、no_background で透過を作る。
+        質が落ちていないかも比較する。投影が直っても素材として
+        劣化するなら、別の解決策が要る。
 
 # =====================================================================
 # パイロットで結論を出す確認手順
