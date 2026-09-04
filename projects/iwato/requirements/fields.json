@@ -1,0 +1,784 @@
+{
+  "schema_version": 1,
+  "project_id": "iwato",
+  "tile_size": 32,
+  "screen_tiles": { "w": 20, "h": 11.25 },
+  "size_guideline_screens": { "min": 1.5, "max": 3.0, "exempt": ["F11"] },
+  "topology_constraints": [
+    {
+      "type": "exits_exactly",
+      "field": "F09",
+      "to": ["F03"],
+      "reason": "磐戸城址へは F03 の高架下隧道からのみ到達できる。高速で尾根が断たれており、他に道はない"
+    },
+    {
+      "type": "exits_exactly",
+      "field": "F08",
+      "to": ["F07", "F16"],
+      "reason": "天神社へは F07 光明院裏手の石段からのみ入る。F16 は天神社より奥にあり、通り抜けの先にしか存在しない"
+    },
+    {
+      "type": "gated_entry",
+      "field": "F16",
+      "reason": "薬師谷は禁域。終盤まで進入できない"
+    },
+    {
+      "type": "choke_point",
+      "field": "F09",
+      "via": "F03",
+      "from": "F06",
+      "reason": "F03 を通らずに城址へ到達できてはならない"
+    },
+    {
+      "type": "choke_point",
+      "field": "F08",
+      "via": "F07",
+      "from": "F06",
+      "reason": "F07 を通らずに天神社へ到達できてはならない"
+    },
+    {
+      "type": "choke_point",
+      "field": "F16",
+      "via": "F08",
+      "from": "F06",
+      "reason": "F08 を通らずに薬師谷へ到達できてはならない"
+    },
+    {
+      "type": "all_reachable",
+      "from": "F06",
+      "reason": "拠点である市民センターから全フィールドへ到達できること。孤立したフィールドを作らない"
+    },
+    {
+      "type": "boundary",
+      "field": "F15",
+      "reason": "蒼籠川が南限。御渡橋が唯一の渡河点であり、町域外へ出る接続は存在しない（全ての exit が定義済みフィールドを指すことで担保される）"
+    }
+  ],
+  "terrain_vocabulary": [
+    { "key": "asphalt", "en": "cracked grey asphalt road surface", "ja": "ひび割れたアスファルト" },
+    { "key": "painted_line", "en": "faded white painted road markings", "ja": "褪せた白線" },
+    { "key": "concrete", "en": "poured concrete pavement with expansion joints", "ja": "コンクリート舗装" },
+    { "key": "concrete_curb", "en": "concrete kerb with roadside gutter and steel grating", "ja": "縁石と側溝・グレーチング" },
+    { "key": "gravel", "en": "compacted grey gravel", "ja": "締まった砂利" },
+    { "key": "bare_soil", "en": "dry packed bare earth", "ja": "乾いた地面" },
+    { "key": "dry_grass", "en": "sun-scorched patchy late-summer grass", "ja": "夏枯れのまだらな草" },
+    { "key": "overgrown_grass", "en": "tall overgrown summer weeds", "ja": "伸びきった夏草" },
+    { "key": "stone_pavement", "en": "worn flagstone paving", "ja": "踏み減った石畳" },
+    { "key": "moss_stone", "en": "old stone with dark moss", "ja": "苔むした古い石" },
+    { "key": "stone_steps", "en": "weathered stone steps", "ja": "風化した石段" },
+    { "key": "paddy_water", "en": "shallow standing water of a rice paddy", "ja": "水田の浅い水" },
+    { "key": "paddy_ridge", "en": "narrow earth ridge between rice paddies", "ja": "畦" },
+    { "key": "river_water", "en": "slow shallow river water", "ja": "浅く緩い川面" },
+    { "key": "river_gravel", "en": "pale river gravel bar", "ja": "河原の礫" },
+    { "key": "forest_floor", "en": "dark forest floor with fallen cedar needles", "ja": "杉の落葉が積もる林床" },
+    { "key": "undergrowth", "en": "dense shaded undergrowth", "ja": "日陰の下草" },
+    { "key": "tarmac_parking", "en": "flat asphalt parking lot surface", "ja": "駐車場の平らな舗装" },
+    { "key": "tatami", "en": "worn tatami mat", "ja": "擦れた畳" },
+    { "key": "wood_floor", "en": "dark worn wooden floorboards", "ja": "黒ずんだ板の間" },
+    { "key": "linoleum", "en": "scuffed pale school linoleum floor", "ja": "傷んだリノリウム床" },
+    { "key": "embankment_grass", "en": "mown grass embankment slope", "ja": "刈られた法面の草" },
+    { "key": "concrete_frame", "en": "concrete slope framing grid", "ja": "法枠コンクリート" },
+    { "key": "earthwork_grass", "en": "grassed earthwork rampart", "ja": "草に覆われた土塁" },
+    { "key": "dry_moat", "en": "dry moat floor with leaf litter", "ja": "落葉の溜まった空堀の底" },
+    { "key": "infield_soil", "en": "bare infield soil of a sports ground", "ja": "グラウンドの土" },
+    { "key": "dead_orchard_soil", "en": "dry orchard soil beneath leafless plum trees", "ja": "枯れた梅林の地面" },
+    { "key": "ruin_stone", "en": "collapsed stone foundation blocks", "ja": "崩れた礎石" },
+    { "key": "bridge_deck", "en": "asphalt bridge deck with steel expansion joint", "ja": "橋面と伸縮継手" }
+  ],
+  "fields": [
+    {
+      "id": "F01",
+      "name": "国道281号 沿道商業地区",
+      "reading": "こくどう281ごう えんどうしょうぎょうちく",
+      "world_pos": { "x_m": 150, "y_m": 900 },
+      "size_tiles": { "w": 30, "h": 22 },
+      "elevation": 82,
+      "biome": "roadside_commercial",
+      "horror_core": "明るすぎる安全地帯",
+      "landmarks": [
+        { "id": "supermarket", "name": "スーパー", "note": "夜も看板が灯る。町で最も明るい面" },
+        { "id": "conveni", "name": "深夜のコンビニ", "note": "窓の光が駐車場を白く塗る。唯一の常時光源" },
+        { "id": "kaiten_sushi", "name": "回転寿司", "note": "閉店後の暗い窓と、点きっぱなしの看板" },
+        { "id": "drugstore", "name": "ドラッグストア", "note": "" },
+        { "id": "wide_parking", "name": "広大な駐車場", "note": "白線だけが延々と続く。人がいないほど広い" }
+      ],
+      "interactables": [
+        { "id": "conveni_door", "name": "コンビニの自動ドア", "asset": "obj_conveni_front", "note": "" },
+        { "id": "vending_row", "name": "自動販売機の列", "asset": "obj_vending_machine", "note": "本作で最も彩度の高い光源。ここだけ色が許される" },
+        { "id": "parking_notice", "name": "駐車場の掲示", "asset": "obj_signboard_pole", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true },
+        { "id": "tile_parking_line", "label": "駐車場と白線", "lower": "tarmac_parking", "upper": "painted_line", "transition": null, "shared": true },
+        { "id": "tile_asphalt_grass", "label": "アスファルトと夏枯れの草", "lower": "asphalt", "upper": "dry_grass", "transition": "bare_soil", "shared": true }
+      ],
+      "required_objects": [
+        "obj_vending_machine", "obj_utility_pole", "obj_street_light_mercury",
+        "obj_guardrail", "obj_road_mirror", "obj_traffic_cone", "obj_signboard_pole",
+        "obj_conveni_front", "obj_shop_facade_roadside", "obj_kei_car",
+        "ovh_power_line", "ovh_shop_awning"
+      ],
+      "ambience": "車の走行音が絶えない。虫の声より人工音が勝つ。町で唯一、夜に音がある場所",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F02", "via": "国道281号 北行き", "kind": "road", "gated": false },
+        { "to": "F05", "via": "旧街道への連絡路", "kind": "alley", "gated": false },
+        { "to": "F12", "via": "国道281号 南行き", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F02",
+      "name": "於御所住宅地",
+      "reading": "おごそじゅうたくち",
+      "world_pos": { "x_m": 450, "y_m": 450 },
+      "size_tiles": { "w": 26, "h": 22 },
+      "elevation": 95,
+      "biome": "residential_showa",
+      "horror_core": "生活が途中で止まっている",
+      "landmarks": [
+        { "id": "friend_house", "name": "親友の家", "note": "本作の中心。外観は他の家と全く同じであること。特別に見せない" },
+        { "id": "old_hermitage", "name": "古い庵", "note": "住宅地に一軒だけ残る古い建物" },
+        { "id": "narrow_slope", "name": "於御所の坂", "note": "" },
+        { "id": "block_wall_alley", "name": "ブロック塀の路地", "note": "" }
+      ],
+      "interactables": [
+        { "id": "friend_room", "name": "親友の部屋", "asset": "obj_room_interior_stopped", "note": "生活が途中で止まった部屋としてのみ描く。死を示す物を一切置かない" },
+        { "id": "mailbox_full", "name": "溜まった郵便受け", "asset": "obj_mailbox", "note": "" },
+        { "id": "laundry_left", "name": "干したままの洗濯物", "asset": "obj_laundry_pole", "note": "8月の日差しに晒され続けている" },
+        { "id": "potted_dead", "name": "枯れた鉢植え", "asset": "obj_potted_plant", "note": "水をやる人がいない" }
+      ],
+      "required_tiles": [
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true },
+        { "id": "tile_concrete_grass", "label": "コンクリートと夏枯れの草", "lower": "concrete", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_tatami_wood", "label": "畳と板の間", "lower": "tatami", "upper": "wood_floor", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_block_wall", "obj_hedge", "obj_potted_plant", "obj_laundry_pole",
+        "obj_mailbox", "obj_air_conditioner_outdoor", "obj_bicycle",
+        "obj_house_facade_showa", "obj_utility_pole", "obj_water_tank",
+        "obj_room_interior_stopped", "obj_electric_fan", "obj_low_table",
+        "ovh_eaves_tile", "ovh_power_line"
+      ],
+      "ambience": "蝉。室外機の低い唸り。人の声がしない。どこかで風鈴が鳴っている",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [
+        "死・遺体・その痕跡を示す物を一切置かないこと",
+        "自死の手段・方法を想起させる器具や状態を描かないこと",
+        "血・傷・暴力を想起させる要素を置かないこと",
+        "『生活が途中で止まった』ことのみで表現すること。飲みかけのコップ、開いたままの本、つけっぱなしの扇風機で十分である"
+      ],
+      "exits": [
+        { "to": "F01", "via": "国道281号へ下る道", "kind": "road", "gated": false },
+        { "to": "F03", "via": "於御所の坂", "kind": "road", "gated": false },
+        { "to": "F05", "via": "旧鹿之尾街道 北口", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F03",
+      "name": "磐戸バスストップ・高架下",
+      "reading": "いわとばすすとっぷ・こうかした",
+      "world_pos": { "x_m": 950, "y_m": 500 },
+      "size_tiles": { "w": 34, "h": 16 },
+      "elevation": 110,
+      "biome": "infrastructure_underpass",
+      "horror_core": "上に音があり、地上に人がいない",
+      "landmarks": [
+        { "id": "highway_bus_stop", "name": "高速バスストップ", "note": "上下線のポールだけがある" },
+        { "id": "slope_stairs", "name": "法面の階段", "note": "F09 へ至る唯一の経路" },
+        { "id": "noise_barrier", "name": "防音壁", "note": "町を南北に分断する壁" },
+        { "id": "dark_underpass", "name": "高架下隧道", "note": "北側へ抜ける数少ない穴のひとつ" }
+      ],
+      "interactables": [
+        { "id": "bus_timetable", "name": "時刻表", "asset": "obj_bus_stop_pole", "note": "" },
+        { "id": "underpass_light", "name": "隧道の照明", "asset": "obj_tunnel_light", "note": "青白い蛍光灯。数少ない光源" }
+      ],
+      "required_tiles": [
+        { "id": "tile_concrete_slab", "label": "コンクリート床とアスファルトの継ぎ", "lower": "concrete", "upper": "asphalt", "transition": null, "shared": true },
+        { "id": "tile_embankment", "label": "法面の草と法枠", "lower": "embankment_grass", "upper": "concrete_frame", "transition": null, "shared": true },
+        { "id": "tile_asphalt_grass", "label": "アスファルトと夏枯れの草", "lower": "asphalt", "upper": "dry_grass", "transition": "bare_soil", "shared": true }
+      ],
+      "required_objects": [
+        "obj_noise_barrier", "obj_bus_stop_pole", "obj_tunnel_light",
+        "obj_bridge_pier", "obj_guardrail", "obj_utility_pole",
+        "obj_vending_machine", "obj_traffic_cone", "obj_stair_handrail",
+        "ovh_viaduct_deck", "ovh_power_line"
+      ],
+      "ambience": "頭上を車が通過する音だけが規則的に鳴る。地上には風と蝉。音の出どころが見えない",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F02", "via": "於御所の坂", "kind": "road", "gated": false },
+        { "to": "F04", "via": "隧道を抜けた先の農道", "kind": "path", "gated": false },
+        { "to": "F09", "via": "高架下隧道と法面の階段", "kind": "tunnel", "gated": false },
+        { "to": "F07", "via": "高架沿いの側道", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F04",
+      "name": "八柱の谷戸",
+      "reading": "やはしらのやと",
+      "world_pos": { "x_m": 1750, "y_m": 380 },
+      "size_tiles": { "w": 24, "h": 20 },
+      "elevation": 165,
+      "biome": "terraced_farmland",
+      "horror_core": "人里から最も遠い",
+      "landmarks": [
+        { "id": "persimmon_grove", "name": "柿の畑", "note": "8月なのでまだ青い実" },
+        { "id": "chestnut_grove", "name": "栗の畑", "note": "" },
+        { "id": "abandoned_shed", "name": "放棄された農機具小屋", "note": "トタンが剥がれている" },
+        { "id": "game_trail", "name": "獣道", "note": "人の道ではない" }
+      ],
+      "interactables": [
+        { "id": "farm_machine", "name": "錆びた農機具", "asset": "obj_agricultural_machine", "note": "" },
+        { "id": "shed_door", "name": "小屋の戸", "asset": "obj_farm_shed", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true },
+        { "id": "tile_gravel_grass", "label": "砂利と夏枯れの草", "lower": "gravel", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_forest_floor", "label": "林床と下草", "lower": "forest_floor", "upper": "undergrowth", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_agricultural_machine", "obj_farm_shed", "obj_persimmon_tree",
+        "obj_chestnut_tree", "obj_utility_pole", "obj_irrigation_channel",
+        "obj_wire_fence", "ovh_tree_canopy_broadleaf", "ovh_power_line"
+      ],
+      "ambience": "蝉が一番濃い。風が草を鳴らす。人工音が届かない",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F03", "via": "隧道を抜けた先の農道", "kind": "path", "gated": false }
+      ]
+    },
+    {
+      "id": "F05",
+      "name": "旧鹿之尾街道 商店街",
+      "reading": "きゅうしかのおかいどう しょうてんがい",
+      "world_pos": { "x_m": 380, "y_m": 1150 },
+      "size_tiles": { "w": 16, "h": 36 },
+      "elevation": 88,
+      "biome": "shuttered_shopping_street",
+      "horror_core": "音が消える",
+      "landmarks": [
+        { "id": "shutter_row", "name": "シャッター街", "note": "閉じたシャッターが延々と続く" },
+        { "id": "dagashiya", "name": "駄菓子屋", "note": "1軒だけ生きている。灯りがある" },
+        { "id": "enshoji_gate", "name": "圓照寺の門前", "note": "" },
+        { "id": "arcade_remains", "name": "商店街アーケードの残骸", "note": "骨組みだけが残る" }
+      ],
+      "interactables": [
+        { "id": "dagashiya_door", "name": "駄菓子屋の引き戸", "asset": "obj_shop_facade_shutter", "note": "" },
+        { "id": "old_vending", "name": "古い自動販売機", "asset": "obj_vending_machine_old", "note": "" },
+        { "id": "notice_board_old", "name": "色褪せた貼り紙", "asset": "obj_signboard_shutter", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true },
+        { "id": "tile_concrete_grass", "label": "コンクリートと夏枯れの草", "lower": "concrete", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_stone_moss", "label": "石畳と苔", "lower": "stone_pavement", "upper": "moss_stone", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_shop_facade_shutter", "obj_signboard_shutter", "obj_vending_machine_old",
+        "obj_utility_pole", "obj_street_light_mercury", "obj_potted_plant",
+        "obj_bicycle", "obj_temple_gate", "obj_side_ditch_cover",
+        "ovh_arcade_frame", "ovh_shop_awning", "ovh_power_line"
+      ],
+      "ambience": "国道の音が届かなくなる境目。自分の足音が聞こえる。駄菓子屋の冷蔵庫だけが唸る",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F01", "via": "国道281号への連絡路", "kind": "alley", "gated": false },
+        { "to": "F02", "via": "旧鹿之尾街道 北口", "kind": "road", "gated": false },
+        { "to": "F06", "via": "旧鹿之尾街道 南行き", "kind": "road", "gated": false },
+        { "to": "F07", "via": "門前への道", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F06",
+      "name": "磐戸市民センター・交番前広場",
+      "reading": "いわとしみんせんたー・こうばんまえひろば",
+      "world_pos": { "x_m": 560, "y_m": 1450 },
+      "size_tiles": { "w": 24, "h": 16 },
+      "elevation": 90,
+      "biome": "civic_plaza",
+      "horror_core": "唯一の拠点",
+      "landmarks": [
+        { "id": "civic_center", "name": "市民センター", "note": "図書室がある。セーブ地点" },
+        { "id": "police_box", "name": "交番", "note": "在/不在が日によって変わる" },
+        { "id": "plaza", "name": "交番前広場", "note": "町で唯一、人が集まる形をした場所" },
+        { "id": "bulletin", "name": "掲示板", "note": "情報ハブ。日付ごとに貼り紙が変わる" }
+      ],
+      "interactables": [
+        { "id": "bulletin_board", "name": "掲示板", "asset": "obj_bulletin_board", "note": "情報ハブ。8月の日付進行で内容が変わる" },
+        { "id": "public_phone", "name": "公衆電話", "asset": "obj_public_phone", "note": "" },
+        { "id": "library_door", "name": "図書室の扉", "asset": "obj_civic_facade", "note": "" },
+        { "id": "save_bench", "name": "広場のベンチ", "asset": "obj_bench", "note": "セーブ地点" },
+        { "id": "plaza_vending", "name": "広場の自動販売機", "asset": "obj_vending_machine", "note": "夜はここだけが光る" }
+      ],
+      "required_tiles": [
+        { "id": "tile_concrete_grass", "label": "コンクリートと夏枯れの草", "lower": "concrete", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true },
+        { "id": "tile_linoleum_wood", "label": "リノリウムと板張り", "lower": "linoleum", "upper": "wood_floor", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_bulletin_board", "obj_public_phone", "obj_bench", "obj_vending_machine",
+        "obj_civic_facade", "obj_police_box", "obj_street_light_led",
+        "obj_bicycle_rack", "obj_planter_box", "obj_utility_pole",
+        "obj_bookshelf", "ovh_building_eaves_flat", "ovh_power_line"
+      ],
+      "ambience": "自販機の駆動音。蛍光灯のジー音。誰かがいそうで、いない",
+      "time_variants": ["morning", "day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F05", "via": "旧鹿之尾街道 北行き", "kind": "road", "gated": false },
+        { "to": "F10", "via": "河川敷への道", "kind": "road", "gated": false },
+        { "to": "F11", "via": "通学路", "kind": "road", "gated": false },
+        { "to": "F12", "via": "支所前通り", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F07",
+      "name": "光明院 門前",
+      "reading": "こうみょういん もんぜん",
+      "world_pos": { "x_m": 1450, "y_m": 1300 },
+      "size_tiles": { "w": 26, "h": 20 },
+      "elevation": 130,
+      "biome": "temple_precinct",
+      "horror_core": "一棟だけ焼け残っている",
+      "landmarks": [
+        { "id": "kannon_hall", "name": "観音堂", "note": "戦国期の焼失を免れた唯一の建物" },
+        { "id": "burnt_foundation", "name": "本堂の礎石", "note": "建物はない。石だけが残る" },
+        { "id": "old_graveyard", "name": "古い墓域", "note": "墓標のみ。死の直接描写はしない" },
+        { "id": "back_stairs", "name": "裏手の石段", "note": "F08 へ至る唯一の経路" }
+      ],
+      "interactables": [
+        { "id": "temple_offering", "name": "賽銭箱", "asset": "obj_offering_box", "note": "" },
+        { "id": "stone_buddha", "name": "石仏", "asset": "obj_stone_buddha", "note": "" },
+        { "id": "temple_bell", "name": "梵鐘", "asset": "obj_temple_bell", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_stone_moss", "label": "石畳と苔", "lower": "stone_pavement", "upper": "moss_stone", "transition": null, "shared": true },
+        { "id": "tile_gravel_grass", "label": "砂利と夏枯れの草", "lower": "gravel", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_temple_gate", "obj_stone_lantern", "obj_stone_buddha", "obj_offering_box",
+        "obj_temple_bell", "obj_grave_marker", "obj_foundation_stone",
+        "obj_wooden_hall_facade", "obj_hedge", "obj_water_basin",
+        "ovh_eaves_tile", "ovh_tree_canopy_cedar"
+      ],
+      "ambience": "蝉が急に遠のく。線香の残り香。石段の上から降りてくる風",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [
+        "墓域は墓標のみで表現し、死の直接描写・遺体・その痕跡を描かないこと"
+      ],
+      "exits": [
+        { "to": "F03", "via": "高架沿いの側道", "kind": "road", "gated": false },
+        { "to": "F05", "via": "門前への道", "kind": "road", "gated": false },
+        { "to": "F08", "via": "光明院裏手の石段", "kind": "stairs", "gated": false },
+        { "to": "F10", "via": "参道下の道", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F08",
+      "name": "臥牛山 天神社",
+      "reading": "がぎゅうざん てんじんしゃ",
+      "world_pos": { "x_m": 1900, "y_m": 1550 },
+      "size_tiles": { "w": 20, "h": 33 },
+      "elevation": 210,
+      "biome": "shrine_hilltop",
+      "horror_core": "季節外れの死んだ梅林",
+      "landmarks": [
+        { "id": "long_stairs", "name": "長い石段", "note": "画面の縦を使い切る。登り切るまで上が見えない" },
+        { "id": "plum_orchard", "name": "枯れた梅林", "note": "400本。8月なので花も葉もない。枝だけ" },
+        { "id": "ox_statue", "name": "牛の石像", "note": "天神信仰の撫で牛" },
+        { "id": "shrine_hall", "name": "社殿", "note": "" }
+      ],
+      "interactables": [
+        { "id": "ox_touch", "name": "撫で牛", "asset": "obj_ox_statue", "note": "" },
+        { "id": "ema_rack", "name": "絵馬掛け", "asset": "obj_ema_rack", "note": "" },
+        { "id": "shrine_offering", "name": "賽銭箱", "asset": "obj_offering_box", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_stone_steps", "label": "石段と苔", "lower": "stone_steps", "upper": "moss_stone", "transition": "undergrowth", "shared": true },
+        { "id": "tile_dead_orchard", "label": "枯れた梅林の地面", "lower": "dead_orchard_soil", "upper": "dry_grass", "transition": null, "shared": false },
+        { "id": "tile_gravel_grass", "label": "砂利と夏枯れの草", "lower": "gravel", "upper": "dry_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_torii", "obj_komainu", "obj_ox_statue", "obj_stone_lantern",
+        "obj_ema_rack", "obj_offering_box", "obj_shrine_facade",
+        "obj_plum_tree_bare", "obj_stair_handrail", "obj_water_basin",
+        "ovh_eaves_tile", "ovh_tree_canopy_cedar"
+      ],
+      "ambience": "石段を登るほど町の音が下に沈む。枯れ枝が触れ合う乾いた音。8月なのに死んだ木の匂い",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F07", "via": "光明院裏手の石段", "kind": "stairs", "gated": false },
+        { "to": "F16", "via": "薬師谷への山道", "kind": "trail", "gated": true, "gate": "終盤。物語の最終段階でのみ解放される" }
+      ]
+    },
+    {
+      "id": "F09",
+      "name": "磐戸城址",
+      "reading": "いわとじょうし",
+      "world_pos": { "x_m": 1800, "y_m": 800 },
+      "size_tiles": { "w": 24, "h": 22 },
+      "elevation": 185,
+      "biome": "castle_ruin",
+      "horror_core": "切り離された聖域",
+      "landmarks": [
+        { "id": "rampart", "name": "土塁", "note": "草に覆われ、形だけが残る" },
+        { "id": "dry_moat_ruin", "name": "空堀", "note": "" },
+        { "id": "earth_bridge", "name": "土橋", "note": "" },
+        { "id": "umadashi", "name": "馬出し", "note": "" },
+        { "id": "severed_ridge", "name": "高速に断たれた尾根", "note": "山が物理的に切られている。これがこのフィールドの主題" }
+      ],
+      "interactables": [
+        { "id": "ruin_signboard", "name": "史跡の説明板", "asset": "obj_signboard_pole", "note": "文字が褪せて読めない" }
+      ],
+      "required_tiles": [
+        { "id": "tile_earthwork", "label": "草に覆われた土塁と空堀", "lower": "earthwork_grass", "upper": "dry_moat", "transition": null, "shared": false },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true },
+        { "id": "tile_forest_floor", "label": "林床と下草", "lower": "forest_floor", "upper": "undergrowth", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_signboard_pole", "obj_wire_fence", "obj_noise_barrier",
+        "obj_stone_marker", "obj_stair_handrail",
+        "ovh_tree_canopy_cedar", "ovh_viaduct_deck"
+      ],
+      "ambience": "高速の音が壁の向こうから聞こえるのに、ここには誰も来ない。草の丈が高く、視界が低い",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F03", "via": "高架下隧道と法面の階段", "kind": "tunnel", "gated": false }
+      ]
+    },
+    {
+      "id": "F10",
+      "name": "磐戸運動広場・河川敷",
+      "reading": "いわとうんどうひろば・かせんじき",
+      "world_pos": { "x_m": 1300, "y_m": 2050 },
+      "size_tiles": { "w": 38, "h": 17 },
+      "elevation": 78,
+      "biome": "riverside_field",
+      "horror_core": "隠れる場所がない",
+      "landmarks": [
+        { "id": "overgrown_ground", "name": "草の伸びたグラウンド", "note": "線が消えかけている" },
+        { "id": "rotten_backstop", "name": "朽ちたバックネット", "note": "" },
+        { "id": "riverbank_path", "name": "河川敷の道", "note": "" },
+        { "id": "open_sky", "name": "遮る物のない空", "note": "画面の上半分が空。視界が開けていることが不安になる" }
+      ],
+      "interactables": [
+        { "id": "backstop_check", "name": "バックネット", "asset": "obj_backstop", "note": "" },
+        { "id": "ground_bench", "name": "ベンチ", "asset": "obj_bench", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_infield", "label": "夏枯れの芝と土のグラウンド", "lower": "dry_grass", "upper": "infield_soil", "transition": null, "shared": true },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true },
+        { "id": "tile_gravel_grass", "label": "砂利と夏枯れの草", "lower": "gravel", "upper": "dry_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_backstop", "obj_bench", "obj_wire_fence", "obj_street_light_mercury",
+        "obj_goal_post", "obj_utility_pole", "obj_irrigation_channel",
+        "obj_river_marker", "ovh_power_line"
+      ],
+      "ambience": "風が遮られずに吹き抜ける。草の音だけが大きい。遠くに車の音",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F06", "via": "河川敷への道", "kind": "road", "gated": false },
+        { "to": "F07", "via": "参道下の道", "kind": "road", "gated": false },
+        { "to": "F14", "via": "畦道", "kind": "path", "gated": false },
+        { "to": "F15", "via": "河川敷の道", "kind": "path", "gated": false }
+      ]
+    },
+    {
+      "id": "F11",
+      "name": "磐戸第一小学校",
+      "reading": "いわとだいいちしょうがっこう",
+      "world_pos": { "x_m": 820, "y_m": 1900 },
+      "size_tiles": { "w": 32, "h": 24 },
+      "elevation": 85,
+      "biome": "school",
+      "horror_core": "思い出の場所が反転する",
+      "landmarks": [
+        { "id": "old_wooden_wing", "name": "木造の旧校舎", "note": "一棟だけ残っている。本作の中核ダンジョン" },
+        { "id": "schoolyard", "name": "校庭", "note": "" },
+        { "id": "old_gym", "name": "旧体育館", "note": "" },
+        { "id": "school_gate", "name": "正門", "note": "" }
+      ],
+      "interactables": [
+        { "id": "shoe_lockers", "name": "下駄箱", "asset": "obj_shoe_locker", "note": "" },
+        { "id": "classroom_desk", "name": "教室の机", "asset": "obj_school_desk", "note": "" },
+        { "id": "blackboard_check", "name": "黒板", "asset": "obj_blackboard", "note": "" },
+        { "id": "piano_gym", "name": "体育館のピアノ", "asset": "obj_upright_piano", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_infield", "label": "夏枯れの芝と土のグラウンド", "lower": "dry_grass", "upper": "infield_soil", "transition": null, "shared": true },
+        { "id": "tile_concrete_grass", "label": "コンクリートと夏枯れの草", "lower": "concrete", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_school_gate", "obj_wooden_school_facade", "obj_gym_facade",
+        "obj_backstop", "obj_wire_fence", "obj_utility_pole",
+        "obj_flag_pole", "obj_water_fountain", "obj_swing_set",
+        "ovh_eaves_wooden", "ovh_tree_canopy_broadleaf", "ovh_power_line"
+      ],
+      "sub_maps": [
+        {
+          "id": "F11_1F",
+          "name": "旧校舎 一階",
+          "size_tiles": { "w": 28, "h": 20 },
+          "required_tiles": [
+            { "id": "tile_linoleum_wood", "label": "リノリウムと板張り", "lower": "linoleum", "upper": "wood_floor", "transition": null, "shared": true },
+            { "id": "tile_wood_corridor", "label": "板張り廊下と教室床", "lower": "wood_floor", "upper": "linoleum", "transition": null, "shared": false }
+          ],
+          "required_objects": [
+            "obj_shoe_locker", "obj_school_desk", "obj_blackboard",
+            "obj_classroom_window", "obj_corridor_door", "obj_fire_extinguisher",
+            "obj_wall_clock", "ovh_ceiling_light_off"
+          ],
+          "note": "廊下・教室・昇降口。窓からの光が唯一の光源になる"
+        },
+        {
+          "id": "F11_2F",
+          "name": "旧校舎 二階",
+          "size_tiles": { "w": 28, "h": 20 },
+          "required_tiles": [
+            { "id": "tile_wood_corridor", "label": "板張り廊下と教室床", "lower": "wood_floor", "upper": "linoleum", "transition": null, "shared": false }
+          ],
+          "required_objects": [
+            "obj_school_desk", "obj_blackboard", "obj_classroom_window",
+            "obj_corridor_door", "obj_bookshelf", "obj_wall_clock",
+            "obj_stair_handrail", "ovh_ceiling_light_off"
+          ],
+          "note": "一階と同じ形の廊下。見覚えのある形が繰り返されることが怖さの核"
+        },
+        {
+          "id": "F11_GYM",
+          "name": "旧体育館",
+          "size_tiles": { "w": 22, "h": 16 },
+          "required_tiles": [
+            { "id": "tile_gym_floor", "label": "体育館の床とライン", "lower": "wood_floor", "upper": "painted_line", "transition": null, "shared": false }
+          ],
+          "required_objects": [
+            "obj_upright_piano", "obj_stage_curtain", "obj_wall_bars",
+            "obj_gym_window_high", "obj_folded_mat", "ovh_ceiling_truss"
+          ],
+          "note": "高窓からの光だけ。天井が高く、音が反響する"
+        }
+      ],
+      "ambience": "校庭は蝉。校舎に入ると音が消える。木の床が鳴る。屋外と屋内の音量差を最大にする",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [
+        "血・傷・暴力を想起させる要素を置かないこと",
+        "死の場面・遺体・その痕跡を描かないこと",
+        "ホラーの記号（不気味な顔、超常的な染み等）を描かず、普通の校舎が普通であることで怖い状態を目指すこと"
+      ],
+      "exits": [
+        { "to": "F06", "via": "通学路", "kind": "road", "gated": false },
+        { "to": "F12", "via": "校舎裏の抜け道", "kind": "alley", "gated": false },
+        { "to": "F13", "via": "旧通学路", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F12",
+      "name": "木平団地・支所前",
+      "reading": "きひらだんち・ししょまえ",
+      "world_pos": { "x_m": 330, "y_m": 1850 },
+      "size_tiles": { "w": 28, "h": 18 },
+      "elevation": 84,
+      "biome": "danchi",
+      "horror_core": "同じ形の反復",
+      "landmarks": [
+        { "id": "danchi_blocks", "name": "市営住宅4棟", "note": "同一の建物が4つ並ぶ。同じ素材を4回使うことに意味がある" },
+        { "id": "branch_office", "name": "支所", "note": "" },
+        { "id": "small_park", "name": "小さな公園", "note": "遊具が2つだけ" }
+      ],
+      "interactables": [
+        { "id": "danchi_stairs", "name": "団地の階段室", "asset": "obj_danchi_facade", "note": "" },
+        { "id": "park_swing", "name": "ブランコ", "asset": "obj_swing_set", "note": "" },
+        { "id": "office_notice", "name": "支所の掲示", "asset": "obj_bulletin_board", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_concrete_grass", "label": "コンクリートと夏枯れの草", "lower": "concrete", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_danchi_facade", "obj_bulletin_board", "obj_swing_set",
+        "obj_bicycle_rack", "obj_air_conditioner_outdoor", "obj_laundry_pole",
+        "obj_street_light_led", "obj_planter_box", "obj_utility_pole",
+        "obj_water_tank", "ovh_balcony_danchi", "ovh_power_line"
+      ],
+      "ambience": "室外機の唸りが4棟分重なる。子供の声はしない。同じ階段室が続く",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F01", "via": "国道281号 北行き", "kind": "road", "gated": false },
+        { "to": "F06", "via": "支所前通り", "kind": "road", "gated": false },
+        { "to": "F11", "via": "校舎裏の抜け道", "kind": "alley", "gated": false }
+      ]
+    },
+    {
+      "id": "F13",
+      "name": "倉ノ前ニュータウン",
+      "reading": "くらのまえにゅーたうん",
+      "world_pos": { "x_m": 780, "y_m": 2400 },
+      "size_tiles": { "w": 30, "h": 22 },
+      "elevation": 92,
+      "biome": "newtown",
+      "horror_core": "地図と現実が食い違う",
+      "landmarks": [
+        { "id": "grid_blocks", "name": "整然とした区画", "note": "1980年代の区画整理。道が直角に交わる" },
+        { "id": "identical_houses", "name": "同じ形の家", "note": "同一の建物が並ぶ。角の位置だけが手がかりになる" },
+        { "id": "vacant_lot", "name": "売れ残りの空地", "note": "" },
+        { "id": "estate_sign", "name": "分譲地の看板", "note": "褪せて読めない" }
+      ],
+      "interactables": [
+        { "id": "estate_map", "name": "分譲地の案内図", "asset": "obj_signboard_pole", "note": "現実と食い違っている" },
+        { "id": "house_gate", "name": "門扉", "asset": "obj_house_facade_newtown", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_asphalt_curb", "label": "アスファルトと縁石・側溝", "lower": "asphalt", "upper": "concrete_curb", "transition": null, "shared": true },
+        { "id": "tile_concrete_grass", "label": "コンクリートと夏枯れの草", "lower": "concrete", "upper": "dry_grass", "transition": null, "shared": true },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_house_facade_newtown", "obj_block_wall", "obj_hedge",
+        "obj_signboard_pole", "obj_street_light_led", "obj_utility_pole",
+        "obj_potted_plant", "obj_kei_car", "obj_mailbox",
+        "obj_side_ditch_cover", "ovh_eaves_flat", "ovh_power_line"
+      ],
+      "ambience": "音がほとんどない。同じ角を何度も曲がっている感覚。街灯の間隔が正確すぎる",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [],
+      "exits": [
+        { "to": "F11", "via": "旧通学路", "kind": "road", "gated": false },
+        { "to": "F14", "via": "倉ノ前の外周道", "kind": "road", "gated": false },
+        { "to": "F15", "via": "御渡橋への道", "kind": "road", "gated": false }
+      ]
+    },
+    {
+      "id": "F14",
+      "name": "朝和の里",
+      "reading": "あさわのさと",
+      "world_pos": { "x_m": 1750, "y_m": 2350 },
+      "size_tiles": { "w": 32, "h": 20 },
+      "elevation": 80,
+      "biome": "paddy_village",
+      "horror_core": "昼と夜の落差",
+      "landmarks": [
+        { "id": "paddies", "name": "水田", "note": "8月なので稲が高い。視界が遮られる" },
+        { "id": "shikinai_shrine", "name": "式内社", "note": "千年以上の由緒。小さく、古い" },
+        { "id": "burial_mounds", "name": "古墳群", "note": "草に覆われた盛り土。墓とは見えない形" },
+        { "id": "farm_road", "name": "畦道", "note": "" }
+      ],
+      "interactables": [
+        { "id": "shrine_small", "name": "式内社の社", "asset": "obj_shrine_small", "note": "" },
+        { "id": "mound_marker", "name": "古墳の標柱", "asset": "obj_stone_marker", "note": "" },
+        { "id": "sluice_gate", "name": "用水路の樋門", "asset": "obj_irrigation_channel", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_paddy_ridge", "label": "水田と畦", "lower": "paddy_water", "upper": "paddy_ridge", "transition": null, "shared": true },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true },
+        { "id": "tile_gravel_grass", "label": "砂利と夏枯れの草", "lower": "gravel", "upper": "dry_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_shrine_small", "obj_torii", "obj_stone_marker",
+        "obj_irrigation_channel", "obj_rice_plant_cluster", "obj_farm_shed",
+        "obj_utility_pole", "obj_agricultural_machine", "obj_wire_fence",
+        "ovh_tree_canopy_cedar", "ovh_power_line"
+      ],
+      "ambience": "昼は蛙と蝉で音が飽和する。夜は音が消え、水面だけが光る。落差そのものが主題",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [
+        "古墳群は草に覆われた地形としてのみ描き、死の直接描写をしないこと"
+      ],
+      "exits": [
+        { "to": "F10", "via": "畦道", "kind": "path", "gated": false },
+        { "to": "F13", "via": "倉ノ前の外周道", "kind": "road", "gated": false },
+        { "to": "F15", "via": "川沿いの道", "kind": "path", "gated": false }
+      ]
+    },
+    {
+      "id": "F15",
+      "name": "蒼籠川 河畔・御渡橋",
+      "reading": "あおかごがわ かはん・みわたりばし",
+      "world_pos": { "x_m": 1050, "y_m": 2800 },
+      "size_tiles": { "w": 40, "h": 14 },
+      "elevation": 72,
+      "biome": "river_boundary",
+      "horror_core": "町から出られない",
+      "landmarks": [
+        { "id": "miwatari_bridge", "name": "御渡橋", "note": "町で唯一の渡河点" },
+        { "id": "river_bank", "name": "河原", "note": "" },
+        { "id": "closure_notice", "name": "通行止の掲示", "note": "理由は超常ではなく生活の理屈で示す。工事、増水、路肩崩落" },
+        { "id": "far_bank", "name": "対岸", "note": "見えているのに行けない" }
+      ],
+      "interactables": [
+        { "id": "closure_sign", "name": "通行止の看板", "asset": "obj_road_closure_sign", "note": "超常的な理由を書かないこと。工事・増水など生活の理屈で止める" },
+        { "id": "bridge_rail", "name": "橋の欄干", "asset": "obj_bridge_railing", "note": "" },
+        { "id": "water_gauge", "name": "量水標", "asset": "obj_river_marker", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_river_gravel", "label": "川面と河原の礫", "lower": "river_water", "upper": "river_gravel", "transition": null, "shared": true },
+        { "id": "tile_bridge_deck", "label": "橋面と伸縮継手", "lower": "bridge_deck", "upper": "concrete_curb", "transition": null, "shared": false },
+        { "id": "tile_soil_grass", "label": "土と伸びた雑草", "lower": "bare_soil", "upper": "overgrown_grass", "transition": null, "shared": true }
+      ],
+      "required_objects": [
+        "obj_bridge_railing", "obj_road_closure_sign", "obj_river_marker",
+        "obj_guardrail", "obj_street_light_mercury", "obj_traffic_cone",
+        "obj_wire_fence", "obj_utility_pole", "ovh_power_line"
+      ],
+      "ambience": "水の音。対岸の車の音が届くが、そこへは行けない。町の音の終わり",
+      "time_variants": ["day", "dusk", "night"],
+      "content_constraints": [
+        "通行止の理由は工事・増水・路肩崩落など生活の理屈のみで示し、超常的な暗示をしないこと",
+        "水面と橋を、自死を想起させる構図で描かないこと。欄干越しの俯瞰や、水面への視線誘導を作らないこと"
+      ],
+      "exits": [
+        { "to": "F10", "via": "河川敷の道", "kind": "path", "gated": false },
+        { "to": "F13", "via": "御渡橋への道", "kind": "road", "gated": false },
+        { "to": "F14", "via": "川沿いの道", "kind": "path", "gated": false }
+      ]
+    },
+    {
+      "id": "F16",
+      "name": "薬師谷",
+      "reading": "やくしだに",
+      "world_pos": { "x_m": 2350, "y_m": 1700 },
+      "size_tiles": { "w": 22, "h": 26 },
+      "elevation": 240,
+      "biome": "mountain_forest",
+      "horror_core": "入ってはいけない",
+      "landmarks": [
+        { "id": "ruined_temple", "name": "廃寺", "note": "礎石と崩れた壁だけ" },
+        { "id": "deep_valley", "name": "谷の奥", "note": "終盤専用。ここから先は光が届かない" },
+        { "id": "cedar_stand", "name": "杉の植林", "note": "均等に並んだ幹。人工物のような自然" }
+      ],
+      "interactables": [
+        { "id": "ruin_stone_check", "name": "廃寺の礎石", "asset": "obj_foundation_stone", "note": "" },
+        { "id": "old_lantern", "name": "倒れた石灯籠", "asset": "obj_stone_lantern", "note": "" }
+      ],
+      "required_tiles": [
+        { "id": "tile_forest_floor", "label": "林床と下草", "lower": "forest_floor", "upper": "undergrowth", "transition": null, "shared": true },
+        { "id": "tile_ruin_stone", "label": "崩れた礎石と苔", "lower": "ruin_stone", "upper": "moss_stone", "transition": "undergrowth", "shared": false },
+        { "id": "tile_stone_steps", "label": "石段と苔", "lower": "stone_steps", "upper": "moss_stone", "transition": "undergrowth", "shared": true }
+      ],
+      "required_objects": [
+        "obj_foundation_stone", "obj_stone_lantern", "obj_stone_buddha",
+        "obj_cedar_trunk", "obj_fallen_log", "obj_stone_marker",
+        "ovh_tree_canopy_cedar", "ovh_canopy_dense"
+      ],
+      "ambience": "蝉がいない。水の滴る音だけ。8月なのに寒い",
+      "time_variants": ["day", "dusk"],
+      "content_constraints": [
+        "ホラーの記号（血、内臓、不気味な顔）を描かないこと",
+        "死の場面・遺体・その痕跡を描かないこと"
+      ],
+      "exits": [
+        { "to": "F08", "via": "薬師谷への山道", "kind": "trail", "gated": false }
+      ]
+    }
+  ]
+}
