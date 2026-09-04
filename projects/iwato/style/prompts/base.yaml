@@ -1,0 +1,323 @@
+# =====================================================================
+# 磐戸町奇譚 プロンプト定義
+#
+# **そのまま送信できる形にしてある。** 12 generations しかない状況で、
+# 1枚目を撃つ瞬間に迷いが残らないようにするためである。
+#
+# 送信例は各 asset の command 欄にある。
+# =====================================================================
+
+schema_version: 1
+project_id: iwato
+
+# ---------------------------------------------------------------------
+# ⚠️ negative プロンプトは使えない
+#
+# /create-tileset と /map-objects には negative 系のパラメータが
+# 存在しない（実仕様で確認済み）。/create-image-pixflux の
+# negative_description は仕様上 "(Deprecated)" と明記されている。
+#
+# したがって除外は下の style_controls と、description の具体性で行う。
+# 効く順に並べてある。詳細は STYLE_GUIDE.md の第0節。
+# ---------------------------------------------------------------------
+negative_prompt_support:
+  create_tileset: false
+  map_objects: false
+  create_image_pixflux: deprecated
+  note: |
+    「fantasy / medieval / RPG を除外する」という指示を API に直接
+    与えることはできない。排除は次の4つで行う。
+      1. color_image でパレットを強制する（最強）
+      2. outline: lineless で RPG スプライトの黒縁を消す
+      3. detail を落として装飾過多を防ぐ
+      4. description を具体的に書く（抽象的だとファンタジーへ流れる）
+
+  # pixflux（UI・アイコンで使う予定）では一応使えるので、文言だけ用意しておく。
+  # ただし Deprecated であり、効果を当てにしない。
+  fallback_text_for_pixflux: >-
+    fantasy, medieval, european, RPG, isometric, chibi character,
+    treasure chest, sword, shield, crest, torch, barrel, cobblestone arch,
+    half-timbered house, glowing magic, saturated colors, outline,
+    anti-aliasing, blurry, gradient, drop shadow, watermark, text
+
+# ---------------------------------------------------------------------
+# 全生成に共通で渡す画風パラメータ
+#   negative が使えない以上、ここが実質的な「除外指定」である。
+# ---------------------------------------------------------------------
+style_controls:
+  view: high top-down          # 真上に近い見下ろし。斜めにしない
+  outline: lineless            # 輪郭線を使わない規約と一致し、RPG の黒縁も消える
+  shading: basic shading       # 面の陰影はノーマルマップに任せる
+  detail: low detail           # 余白と単調さが不安を作る
+  text_guidance_scale: 9.5     # 既定8.0より上げ、記述への忠実度を高める
+  color_image: palettes/iwato_64_colors.png   # ★パレット強制。逸脱を抑える主手段
+
+# ---------------------------------------------------------------------
+# 共通プレフィックス
+#   全ての description の先頭に置く。
+#   **肯定側の具体性で殴る**（negative が使えないため）。
+# ---------------------------------------------------------------------
+common_prefix: >-
+  pixel art for a top-down game, modern rural Japan in the 2010s,
+  humid late-summer night in a small Japanese town,
+  muted desaturated palette, deep indigo shadows, no outlines,
+
+common_suffix: >-
+  seen from directly above, flat top-down view, no perspective distortion,
+  clean pixel edges, no anti-aliasing
+
+# ---------------------------------------------------------------------
+# 意図の対訳
+#   英語のプロンプトが何を意図しているかを日本語で残す。
+#   プロンプトを直すときは、まずこの意図が変わったのかを確認すること。
+# ---------------------------------------------------------------------
+intent_ja:
+  common_prefix: |
+    「見下ろしゲームのドット絵」「2010年代の現代日本の地方」
+    「日本の小さな町の、湿った晩夏の夜」「褪せた低彩度のパレット」
+    「深い藍の影」「輪郭線なし」。
+    西洋ファンタジーを排除する語を negative に置けないため、
+    「現代日本」「晩夏」「湿った」を肯定側で繰り返して寄せている。
+  common_suffix: |
+    「真上から見た」「平坦な見下ろし」「遠近の歪みなし」
+    「くっきりした画素の縁」「アンチエイリアスなし」。
+    視点の崩れとアンチエイリアスは後処理で直せないため、
+    生成時点で抑えにいく。
+
+# =====================================================================
+# F06 パイロット — 4点
+#   第1パスは1点1枚ずつ。8〜10 generations。
+#   ここで停止して4点を並べて評価する。
+# =====================================================================
+pilot:
+  field: F06
+  pass1_note: |
+    4点を1枚ずつ生成し、**必ず停止して4点を並べて見せる**。
+    初回で出る問題の大半は系統的であり、1点を3回撃つと
+    同じ欠陥を4回発見することになる。
+  budget:
+    generations_available: 12    # 残高26 − 床14
+    floor: 14                    # どんな理由でも割らない
+    pass1_estimate: "8〜10（タイルセット2本で6〜8、オブジェクト2点で2）"
+
+  assets:
+    # -----------------------------------------------------------------
+    - id: tile_asphalt_curb
+      order: 1
+      endpoint: /create-tileset
+      cost_estimate_generations: "3〜4"
+      verifies: 日本の道路である記号が出るか。西洋意匠が混入しないか
+      params:
+        tile_size: { width: 32, height: 32 }
+        mode: standard
+        transition_size: 0.0
+      lower_description: >-
+        cracked grey asphalt road surface, worn tarmac with fine gravel texture,
+        faded white painted line, modern Japanese street, damp from humidity
+      upper_description: >-
+        pale concrete kerb and roadside gutter with a steel grating drain cover,
+        modern Japanese street edge, weathered concrete
+      transition_description: ""
+      intent_ja: |
+        下地形をアスファルト、上地形を縁石＋側溝＋グレーチングにする。
+        **グレーチング（鋼製の溝蓋）は日本の道路の最も強い記号**であり、
+        これが出れば意匠は日本に寄っている。石畳が出たら失敗。
+        「damp from humidity」で乾いた色になるのを防ぐ。
+      command: >-
+        python tools/client.py --project iwato --kind tileset
+        --name tile_asphalt_curb
+        --lower "<lower_description>" --upper "<upper_description>"
+        --outline lineless --shading "basic shading" --detail "low detail"
+        --guidance 9.5 --color-image palettes/iwato_64_colors.png
+        --seed 1001 --max-images 1 --max-cost 0.20
+
+    # -----------------------------------------------------------------
+    - id: tile_concrete_slab
+      order: 2
+      endpoint: /create-tileset
+      cost_estimate_generations: "3〜4"
+      verifies: "**暗所が成立するか。最大の未検証項目**"
+      params:
+        tile_size: { width: 32, height: 32 }
+        mode: standard
+        transition_size: 0.0
+      lower_description: >-
+        dark stained concrete floor slab under a highway viaduct,
+        deep shadow, very low light, damp concrete with water stains,
+        modern Japanese infrastructure
+      upper_description: >-
+        cracked grey asphalt patch meeting the concrete slab,
+        dark and shadowed, worn edge
+      transition_description: ""
+      intent_ja: |
+        F03 高架下。**時間帯によらず暗い、本質的な暗所**である。
+        tile_asphalt_curb と材質が同系（コンクリート）なので、
+        **明暗の変数だけを分離して比較できる**。
+        「deep shadow」「very low light」を明示し、暗い状態そのものを
+        生成させる。ここでパレットの暗部（夜の実質38色）が
+        機能するかを見る。
+      command: >-
+        python tools/client.py --project iwato --kind tileset
+        --name tile_concrete_slab
+        --lower "<lower_description>" --upper "<upper_description>"
+        --outline lineless --shading "basic shading" --detail "low detail"
+        --guidance 9.5 --color-image palettes/iwato_64_colors.png
+        --seed 1002 --max-images 1 --max-cost 0.20
+
+    # -----------------------------------------------------------------
+    - id: obj_vending_machine
+      order: 3
+      endpoint: /map-objects
+      cost_estimate_generations: "1"
+      verifies: 光源の彩度。本作で最も重要な素材
+      params:
+        image_size: { width: 64, height: 64 }
+      description: >-
+        a Japanese roadside drink vending machine seen from directly above,
+        lit display panel glowing pale cyan-green in the dark,
+        the glow spilling onto the asphalt around its base,
+        rows of canned drinks behind glass, modern rural Japan at night
+      intent_ja: |
+        **本作で最も重要な素材。** 彩度の高い色が許される唯一の対象。
+        「lit display panel glowing pale cyan-green」で光源そのものを、
+        「the glow spilling onto the asphalt around its base」で
+        **光を受けた面**を同時に出させる。
+        この2つが別の色で描かれるかが、レジームB成立の鍵である。
+        「seen from directly above」で真上見下ろしを強制する。
+      command: >-
+        python tools/client.py --project iwato --kind map-object
+        --name obj_vending_machine --description "<description>"
+        --size 64 --view "high top-down"
+        --outline lineless --shading "basic shading" --detail "medium detail"
+        --guidance 9.5 --color-image palettes/iwato_64_colors.png
+        --seed 1003 --max-images 1 --max-cost 0.20
+
+    # -----------------------------------------------------------------
+    - id: obj_civic_facade
+      order: 4
+      endpoint: /map-objects
+      cost_estimate_generations: "1"
+      verifies: 真上見下ろしで建物の高さをどう表現するか。**アプローチの検証**
+      params:
+        image_size: { width: 128, height: 128 }
+      description: >-
+        a small two-storey Japanese community centre building
+        seen from directly above, flat roof with air conditioning units
+        and a water tank, pale mortar walls barely visible at the south edge,
+        cast shadow falling to the south, modern rural Japan
+      intent_ja: |
+        **これはアプローチの検証である。** 建物を 128px の単体スプライトで
+        作れるのか、それともタイルで組むべきなのかを判断する。
+        「flat roof with air conditioning units and a water tank」で
+        **屋根が主役**であることを示し、
+        「pale mortar walls barely visible at the south edge」で
+        壁を手前側だけに限定し、
+        「cast shadow falling to the south」で**高さを影で示す**。
+        失敗した場合の報告は「プロンプトが悪い」ではなく
+        「分解の仕方が違う」になり得る。
+      command: >-
+        python tools/client.py --project iwato --kind map-object
+        --name obj_civic_facade --description "<description>"
+        --size 128 --view "high top-down"
+        --outline lineless --shading "basic shading" --detail "medium detail"
+        --guidance 9.5 --color-image palettes/iwato_64_colors.png
+        --seed 1004 --max-images 1 --max-cost 0.20
+
+# =====================================================================
+# パイロットで結論を出す確認手順
+#   **結果がどうであれ結論を出す。** 判断を先送りしない。
+# =====================================================================
+verification:
+
+  - id: light_vs_lit_surface
+    title: 自販機の光が地面に落ちる部分に、どの色を使うか
+    asset: obj_vending_machine
+    why: |
+      vending[1] (#4DC7AE, 彩度0.52) は他の63色から完全に浮く。
+      光源そのものとしては意図どおりだが、**その光が地面を照らす部分に
+      何を使うか**が未定である。そのまま置くと明るすぎるはずで、
+      実際には concrete / green / fluoro の中間段になる。
+      「光源そのものの色」と「光を受けた面の色」の使い分けが
+      本作の夜景の成否を決める。レジームBの中心問題でもある。
+    procedure:
+      - 生成物を後処理してパレットへ吸着させる
+      - 使われた色を系統別に数える（tools/validate_assets.py が色数を出す）
+      - 自販機の面（光源）と、その足元の地面（受光面）で別の色が
+        使われているかを確認する
+      - 受光面に使われた色の系統（concrete / green / fluoro のどれか）を特定する
+    conclusion_goes_to: STYLE_GUIDE.md 第1節「レジーム B」と第8節①
+    if_fails: |
+      受光面が光源と同じ色で描かれた場合、または受光面が描かれない場合は、
+      プロンプトで光の落ち方を明示する余地がある。ただし2回試して
+      出なければ、**後処理で受光面を描き足す設計**に切り替える提案をする。
+
+  - id: dark_field_viability
+    title: 夜の38色で、常時暗いフィールドが成立するか
+    asset: tile_concrete_slab
+    why: |
+      夜の置換で地の色52色のうち14色が潰れ、実質38色になる。
+      F03（隧道）や F16（禁域）のような常時暗いフィールドで
+      使える色が38色ということである。
+    procedure:
+      - 生成物を後処理してパレットへ吸着させる
+      - 使われた色の数と、その明度分布を数える
+      - "**16タイルを並べて、暗所として形が読めるかを目視する**"
+      - 夜の置換を適用した状態でも同じ確認をする
+    threshold: |
+      1タイルあたり4色以上が暗部（明度30以下）から使われ、
+      かつタイル同士の境界が識別できること。
+    conclusion_goes_to: STYLE_GUIDE.md 第8節②
+    if_fails: |
+      palette_spec.yaml の concrete / indigo / ink の count を増やすか、
+      gamma を上げて暗部の段を厚くする。**パレットは spec から
+      再生成できる。** 変更する場合は理由と影響範囲を明示し、
+      build_palette.py の置換検証を再実行する。
+
+  - id: tileset_connectivity
+    title: 16タイルが継ぎ目なく繋がるか
+    asset: tile_asphalt_curb / tile_concrete_slab
+    why: |
+      **単体で綺麗でも接続で破綻すれば意味がない。**
+      Wang タイルとして16枚が繋がるかが本質であり、
+      破綻はプロンプトではなくアプローチの失敗である。
+    procedure:
+      - 16タイルを取得し、実際に並べた画像を組み立てる
+      - 継ぎ目、角の連続性、繰り返しの目立ちを確認する
+      - "**組み立てた画像を提示する**"
+    conclusion_goes_to: 報告
+
+  - id: building_decomposition
+    title: 建物をどう作るべきか
+    asset: obj_civic_facade
+    why: |
+      **F02 / F05 / F11 / F12 / F13 の建物すべてに波及する。**
+      ここが決まらないと量産の設計が決まらない。
+    procedure:
+      - 屋根が主役になっているか（壁が出すぎていないか）
+      - 落ち影で高さが読めるか
+      - 128px スプライトとしてタイルマップに置いたとき、
+        32px グリッドと整合するか
+    conclusion_goes_to: STYLE_GUIDE.md 第2節と第8節③
+    note: |
+      **結果がどうであれ「建物はどう作るべきか」の結論を出す。**
+      単体スプライト（案A）か、タイルで組む（案B）かを決める。
+
+# =====================================================================
+# 量産時のカテゴリ別追記
+#   パイロット承認後に埋める。
+# =====================================================================
+category_suffix:
+  tilesets: "seamless tileable terrain, consistent lighting across all tiles"
+  objects: "single object with transparent background, grounded contact shadow"
+  overhead: "seen from above, to be drawn over the player, simple silhouette"
+  ui: "（パイロット承認後に確定する）"
+  icons: "（パイロット承認後に確定する）"
+
+# ---------------------------------------------------------------------
+# 改訂履歴
+# ---------------------------------------------------------------------
+history:
+  - date: "2026-09-04"
+    note: |
+      初版。negative が使えないことを実仕様で確認し、
+      color_image / outline / detail / 記述の具体性による排除に切り替えた。
