@@ -20,12 +20,14 @@
 | ツール | 状態 |
 | --- | --- |
 | `new_project.py` | **動作する** |
-| `client.py` | `--dry-run` は動作する。送信は未実装 |
-| `postprocess.py` | インターフェースのみ |
-| `validate_assets.py` | インターフェースのみ |
-| `normalmap.py` | インターフェースのみ |
-| `regenerate.py` | ログ読み出しと再現可否の判定まで。再送信は未実装 |
-| `cost_report.py` | ログ列挙と件数まで。集計は未実装 |
+| `client.py` | **実装済み。** 送信・上限・ガード・ログ記録まで。実 API 未検証 |
+| `postprocess.py` | **実装済み。** 余白トリム・AA除去・パレット適用・グリッド整列 |
+| `validate_assets.py` | **実装済み。** パレット・グリッド・透明度・サイズ |
+| `normalmap.py` | **実装済み。** ローカル生成、Godot 向けに Y 軸反転 |
+| `regenerate.py` | **実装済み。** ただし「同条件での引き直し」（seed 非対応のため） |
+| `cost_report.py` | **実装済み。** `usage.usd` の実額を集計 |
+| `validate_fields.py` | **動作する** |
+| `aggregate_assets.py` | **動作する** |
 
 ## 次のステップ: `iwato`（磐戸町奇譚）
 
@@ -83,15 +85,14 @@
 
 優先順位順。
 
-1. **`client.py` の送信処理** — 最初の生成を通すために必要。
-   実装時に `generation.model` と `default_params` を確定し、`project.yaml` に書く。
-2. **`genlog` への記録を送信処理に組み込む** — 記録漏れが起きると
-   中間生成物を捨てる方針の前提が崩れる。送信と記録を分離しないこと。
-3. **`postprocess.py`** — パレット確定後でないと意味がない。
-4. **`validate_assets.py`** — 完成品が出てから。CI に載せる場合はここ。
-5. **`regenerate.py` の再送信** — `client.py` の送信処理を再利用する。
-6. **`normalmap.py`** — 背景とタイルが出てから。
-7. **`cost_report.py` の集計** — ログが貯まってから。
+1. **実 API での疎通確認** — 実装は済んでいるが、有効な API キーでの
+   送信をまだ一度も行っていない。最初の1枚で経路全体を確かめる。
+2. **`generation.model` と `default_params` の確定** — 実送信の結果を見て
+   `project.yaml` に書く。
+3. **パレットの確定** — `postprocess.py` はパレット未設定でも動くが、
+   `max_colors` への減色しか行わない。パレットが入って初めて本来の動作になる。
+4. **CI への組み込み** — `validate_assets.py` と `tests/test_guard.py` を
+   PR 時に回す構成を検討する。
 
 ## 未決の事項
 
@@ -99,8 +100,11 @@
   設定方法は [.env.example](../.env.example)。
 - **`generation.model` が `null`。** 使用モデルを決めて `project.yaml` に書く。
   実際に使った値は生成ログにも毎回記録される。
-- **推定コストの算出方法が未定。** `estimated_cost` に何を入れるか
-  （課金単位あたりの単価か、クレジット消費量か）を決める必要がある。
+- ~~推定コストの算出方法が未定~~ → **解決済み。** レスポンスの `usage.usd`
+  （実額）をそのまま記録する。自前の単価表は持たない。
+- ~~再現性はシードとプロンプトで担保~~ → **不成立だったため方針変更。**
+  PixelLab API は seed 非対応。**再現性の担保は完成品が Git LFS にあること。**
+  `regenerate.py` は「同条件での引き直し」であり、復元ツールではない。
 - **`generation.provider` は現在 `pixellab` のみ。** 他サービスを併用する際は
   `tools/lib/config.py` の `PROVIDER_ENV` と `schema/project.schema.json` の
   `enum` に追加し、`client.py` で分岐する。
