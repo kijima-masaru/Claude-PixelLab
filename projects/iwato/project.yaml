@@ -46,7 +46,11 @@ generation:
   # 生成サービス識別子。ここを切り替えることで特定サービスへの固着を避ける。
   # APIキーは環境変数から読む。ここには書かない。
   provider: pixellab
+  # PixelLab はレスポンスにモデル名を返さない（実測で確認）。
+  # 実際に使ったエンドポイントは生成ログの endpoint に1件ごとに記録される。
   model: null
+  # /create-tileset の mode（standard / pro）は出力もコストも大きく変える。
+  # 実物を見て決めるため、F06 パイロットの後に確定する。
   default_params: {}
 
 notes: |

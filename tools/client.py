@@ -31,7 +31,7 @@ from lib import config, genlog, guard, provider  # noqa: E402
 #: 生成の種類と、対応するエンドポイント。
 KINDS = {
     "tileset": "/create-tileset",
-    "map-object": "/create-map-object",
+    "map-object": "/map-objects",
     "ui": "/generate-ui-v2",
     "image": "/create-image-pixflux",
 }
@@ -69,7 +69,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--size", type=int, default=64, metavar="PX",
                         help="出力の一辺（既定: 64）。tileset では tile_size を使う。")
     parser.add_argument("--view", default="high top-down",
+                        choices=["low top-down", "high top-down", "side"],
                         help="視点（既定: high top-down）。本作は真上見下ろし。")
+    parser.add_argument("--seed", type=int,
+                        help="シード。同じ値で同じ結果が得られるかは実測で確認すること。"
+                             "省略時は API 側が決めるため、再現できなくなる。")
     parser.add_argument("--param", action="append", default=[], metavar="KEY=VALUE",
                         help="追加パラメータ。複数指定可。全てログに記録される。")
     parser.add_argument("--run-id", help="実行単位ID。省略時は生成する。_work/<run_id>/ に対応。")
@@ -147,6 +151,9 @@ def build_request(cfg: dict, args: argparse.Namespace) -> tuple:
         if args.negative_prompt:
             request["negative_description"] = args.negative_prompt
 
+    if args.seed is not None and args.kind in ("tileset", "map-object"):
+        request["seed"] = args.seed
+
     request.update(defaults)
     request.update(extra)
     return endpoint, request
@@ -168,10 +175,9 @@ def _log_record(cfg: dict, args: argparse.Namespace, endpoint: str, request: dic
                                     request.get("transition_description")])),
         "negative_prompt": args.negative_prompt or request.get("negative_description") or "",
         "params": request,
-        # PixelLab API は seed を受け取らず、応答にも返さない。
-        # 同一画像の復元はできない。再現性の担保は完成品を LFS に持つことである。
-        "seed": None,
-        "seed_note": "API が seed をサポートしないため記録できない",
+        "seed": request.get("seed"),
+        "seed_note": ("指定なし。API 側が決めるため引き直しても同一にならない"
+                      if request.get("seed") is None else ""),
         "endpoint": endpoint,
         "asset_name": args.name,
         "output_path": str(output_path) if output_path else None,
@@ -181,6 +187,50 @@ def _log_record(cfg: dict, args: argparse.Namespace, endpoint: str, request: dic
         "estimated_cost": usd,
         "cost_source": "usage.usd（実額）" if usd else "未取得",
     }
+
+
+def strip_images(node):
+    """レスポンスから base64 の塊を取り除いた写しを返す（保存・観察用）。"""
+    if isinstance(node, dict):
+        out = {}
+        for key, value in node.items():
+            if key == "base64" and isinstance(value, str):
+                out[key] = "<base64 %d bytes 省略>" % len(value)
+            else:
+                out[key] = strip_images(value)
+        return out
+    if isinstance(node, list):
+        return [strip_images(v) for v in node]
+    if isinstance(node, str) and node.startswith("data:image/"):
+        return "<data URI %d bytes 省略>" % len(node)
+    return node
+
+
+def response_model(body: dict) -> tuple:
+    """レスポンスからモデル名とバージョンを拾う。無ければ (None, None)。
+
+    PixelLab は応答にモデル名を返さないことがある。その場合は
+    エンドポイントを model として記録し、実値が取れないことを明示する。
+    """
+    name = version = None
+
+    def walk(node):
+        nonlocal name, version
+        if isinstance(node, dict):
+            for key, value in node.items():
+                lowered = str(key).lower()
+                if lowered in ("model", "model_name", "model_id") and isinstance(value, str):
+                    name = name or value
+                elif lowered in ("model_version", "version") and isinstance(value, (str, int)):
+                    version = version or str(value)
+                else:
+                    walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(body)
+    return name, version
 
 
 def generate(cfg: dict, endpoint: str, request: dict, args: argparse.Namespace,
@@ -193,7 +243,9 @@ def generate(cfg: dict, endpoint: str, request: dict, args: argparse.Namespace,
     print("送信します: " + endpoint)
     print("  上限: 枚数 " + str(args.max_images) + " / 実額 $" + ("%.2f" % args.max_cost))
 
-    body, usd = provider.call(endpoint, request, cfg["generation"]["provider"])
+    body, used = provider.call(endpoint, request, cfg["generation"]["provider"])
+    usd = used["usd"]
+    generations = used["generations"]
     images = provider.extract_images(body)
 
     if usd > args.max_cost:
@@ -208,10 +260,25 @@ def generate(cfg: dict, endpoint: str, request: dict, args: argparse.Namespace,
         path.write_bytes(blob)
         saved.append(path)
 
+    # レスポンスの写し（画像は除く）を残す。モデル名やコストの出所を後から追える。
+    meta_path = work / "response.json"
+    meta_path.write_text(
+        json.dumps(strip_images(body), ensure_ascii=False, indent=2),
+        encoding="utf-8", newline="\n",
+    )
+
+    model_name, model_version = response_model(body)
     record = _log_record(cfg, args, endpoint, request, run_id,
                          saved[0] if saved else None, usd, None, "")
+    record["model"] = model_name or cfg["generation"].get("model") or endpoint
+    record["model_version"] = model_version
+    record["model_source"] = "レスポンス" if model_name else "エンドポイント名で代用（応答に無し）"
     record["output_count"] = len(images)
     record["saved_count"] = len(saved)
+    record["generations_used"] = generations
+    record["cost_source"] = ("usage.usd（実額）" if usd
+                             else ("billing_usage.generations（回数制）" if generations
+                                   else "未取得"))
     log_path = genlog.append(record)
 
     print("")
@@ -220,7 +287,10 @@ def generate(cfg: dict, endpoint: str, request: dict, args: argparse.Namespace,
     print("  保存先   : " + str(work.relative_to(config.ROOT)))
     for path in saved:
         print("    " + path.name)
-    print("  実額     : $%.4f（レスポンスの usage.usd）" % usd)
+    print("  モデル   : " + str(record["model"]) + "（出所: " + record["model_source"] + "）")
+    print("  使用量   : $%.4f / %.1f 生成回数（出所: %s）"
+          % (usd, generations, record["cost_source"]))
+    print("  応答控え : " + str(meta_path.relative_to(config.ROOT)))
     print("  ログ     : " + str(log_path.relative_to(config.ROOT)))
     print("  run_id   : " + run_id)
     print("")

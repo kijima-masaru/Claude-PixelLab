@@ -46,7 +46,17 @@ FORBIDDEN_PARAMS = frozenset({
     "from_image",
     "portrait",
     "portrait_image",
+    # 実仕様を直接確認して判明した分（/map-objects, /create-tileset）
+    "background_image",
+    "lower_reference_image",
+    "upper_reference_image",
+    "transition_reference_image",
 })
+
+#: 将来ここを緩める予定の注記。
+#: 「承認済みの自作タイルのみを参照画像に使う」手順に入る段階で、
+#: 名前による一律禁止から「自作素材のみ許可」へ切り替える。
+#: そのときも refs/ のパス照合・ハッシュ照合・JPEG 検出は残すこと。
 
 #: 自作画像を正当に送る可能性があるパラメータ（後処理系）。中身を検査する。
 CONTENT_CHECKED_PARAMS = frozenset({

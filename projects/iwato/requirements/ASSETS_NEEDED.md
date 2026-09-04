@@ -21,7 +21,7 @@ PixelLab の `/create-tileset` は**1コールで16タイルを返す**。下地
 | 素材の種類 | エンドポイント | 1コールの産出 |
 | --- | --- | --- |
 | 地面（ground レイヤー） | `POST /create-tileset` | **16タイル** |
-| 単体オブジェクト（objects / overhead） | `POST /create-map-object` | 1点 |
+| 単体オブジェクト（objects / overhead） | `POST /map-objects` | 1点 |
 | UI 部品 | `POST /generate-ui-v2` | サイズにより 1〜64点 |
 | アイコン | `POST /generate-image-v2` | 32px なら**64点の候補** |
 
@@ -85,7 +85,7 @@ PixelLab の `/create-tileset` は**1コールで16タイルを返す**。下地
 
 ## 2. objects レイヤー — 91 点
 
-プレイヤーと同じ高さに描画される物。`/create-map-object` で透過付きで生成する。
+プレイヤーと同じ高さに描画される物。`/map-objects` で透過付きで生成する。
 
 | 素材ID | 使用数 | 使用フィールド |
 | --- | ---: | --- |

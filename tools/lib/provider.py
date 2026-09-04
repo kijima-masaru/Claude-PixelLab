@@ -143,13 +143,32 @@ def _raise_for_status(status: int, body: dict, context: str) -> None:
         )
 
 
+def usage_info(body: dict) -> dict:
+    """レスポンスから使用量を取り出す。
+
+    PixelLab は課金形態によって返し方が変わる:
+      - 従量課金 : {"usage": {"type": "usd", "usd": 0.0123}}
+      - 回数制   : {"billing_usage": {"type": "generations", "generations": 1.0}}
+    どちらも取りこぼさないよう両方を見る。実測で確認済み。
+    """
+    out = {"usd": 0.0, "generations": 0.0}
+    for key in ("usage", "billing_usage"):
+        node = (body or {}).get(key) or {}
+        if not isinstance(node, dict):
+            continue
+        for field in ("usd", "generations"):
+            try:
+                value = float(node.get(field) or 0.0)
+            except (TypeError, ValueError):
+                continue
+            if value:
+                out[field] += value
+    return out
+
+
 def _usd(body: dict) -> float:
-    """レスポンスから実額（USD）を取り出す。無ければ 0.0。"""
-    usage = (body or {}).get("usage") or {}
-    try:
-        return float(usage.get("usd") or 0.0)
-    except (TypeError, ValueError):
-        return 0.0
+    """後方互換のため残す。実額（USD）のみを返す。"""
+    return usage_info(body)["usd"]
 
 
 def call(endpoint: str, payload: dict, provider: str = "pixellab",
@@ -163,8 +182,6 @@ def call(endpoint: str, payload: dict, provider: str = "pixellab",
 
     api_key = resolve_api_key(provider)
     url = BASE_URL + endpoint
-    total_usd = 0.0
-
     last_error: ProviderError | None = None
     for attempt in range(MAX_RETRIES + 1):
         if attempt:
@@ -187,14 +204,20 @@ def call(endpoint: str, payload: dict, provider: str = "pixellab",
             + str(last_error)
         )
 
-    total_usd += _usd(body)
+    used = usage_info(body)
 
     job_id = body.get("background_job_id")
     if status == 202 or job_id:
-        body, poll_usd = _poll(job_id, api_key, verbose=verbose)
-        total_usd += poll_usd
+        body, poll_used = _poll(job_id, api_key, verbose=verbose)
+        for key in used:
+            used[key] += poll_used.get(key, 0.0)
+        # ジョブ完了後の応答にも使用量が載ることがある
+        final = usage_info(body)
+        for key in used:
+            if final.get(key) and not used[key]:
+                used[key] = final[key]
 
-    return body, total_usd
+    return body, used
 
 
 def _poll(job_id: str, api_key: str, verbose: bool = True) -> tuple:
@@ -203,7 +226,7 @@ def _poll(job_id: str, api_key: str, verbose: bool = True) -> tuple:
         raise ProviderError("非同期ジョブIDが返りませんでした。")
     url = BASE_URL + "/background-jobs/" + str(job_id)
     deadline = time.monotonic() + POLL_TIMEOUT_SECONDS
-    total_usd = 0.0
+    total = {"usd": 0.0, "generations": 0.0}
     waited = 0.0
 
     while time.monotonic() < deadline:
@@ -213,10 +236,12 @@ def _poll(job_id: str, api_key: str, verbose: bool = True) -> tuple:
             waited += POLL_INTERVAL_SECONDS
             continue
         _raise_for_status(status, body, "background-jobs")
-        total_usd += _usd(body)
+        used = usage_info(body)
+        for key in total:
+            total[key] += used.get(key, 0.0)
         state = str(body.get("status") or "").lower()
         if state in ("completed", "succeeded", "success"):
-            return body.get("last_response") or body, total_usd
+            return body.get("last_response") or body, total
         if state in ("failed", "error"):
             raise ProviderError(
                 "生成ジョブが失敗しました: " + str(body.get("error") or body)[:400]
@@ -239,18 +264,23 @@ def extract_images(body: dict) -> list:
 
     found: list = []
 
-    def walk(node) -> None:
+    # PNG / JPEG の base64 は決まった文字で始まる。裸の文字列を見分けるのに使う。
+    magic = ("iVBORw0KGgo", "/9j/")
+
+    def walk(node, key: str = "") -> None:
         if isinstance(node, dict):
             if node.get("type") == "base64" and isinstance(node.get("base64"), str):
                 found.append(node["base64"])
                 return
-            for value in node.values():
-                walk(value)
+            for name, value in node.items():
+                walk(value, str(name))
         elif isinstance(node, (list, tuple)):
             for value in node:
-                walk(value)
-        elif isinstance(node, str) and node.startswith("data:image/"):
-            found.append(node)
+                walk(value, key)
+        elif isinstance(node, str):
+            # /map-objects などは {"image": "<裸の base64>"} で返す。実測で確認済み。
+            if node.startswith("data:image/") or node.startswith(magic):
+                found.append(node)
 
     walk(body)
 
