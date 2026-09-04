@@ -1,0 +1,53 @@
+# =====================================================================
+# {{title}} ({{id}}) — プロジェクト設定
+#
+# このファイルがこのプロジェクトの唯一の設定元である。
+# 解像度・タイルサイズ・色数はここだけに書き、ツールには --project {{id}}
+# だけを渡す。ツール側にプロジェクト固有の値を書かないこと。
+#
+# スキーマ: schema/project.schema.json
+# =====================================================================
+
+id: {{id}}
+title: {{title}}
+description: {{description}}
+
+engine:
+  name: {{engine_name}}
+  version: "{{engine_version}}"
+
+canvas:
+  # タイル1辺のピクセル数。後処理のグリッド整列と検証の基準。
+  tile_size: {{tile_size}}
+  # ゲームの基準解像度（論理解像度）。背景1枚のサイズ算出に使う。
+  base_resolution:
+    width: {{width}}
+    height: {{height}}
+
+palette:
+  # 使用してよい色数の上限。validate_assets.py の検査基準。
+  max_colors: {{max_colors}}
+  # パレットファイルのプロジェクト相対パス。未確定なら null。
+  file: {{palette_file}}
+
+output:
+  # エンジン側のインポート設定と必ず一致させること。
+  # ドット絵では filter=nearest / mipmaps=false / compression=none で固定する。
+  format: {{format}}
+  filter: {{filter}}
+  mipmaps: {{mipmaps}}
+  compression: {{compression}}
+  normalmap: {{normalmap}}
+
+# assets/ 直下に作るカテゴリ。
+asset_categories: {{asset_categories}}
+
+generation:
+  # 生成サービス識別子。ここを切り替えることで特定サービスへの固着を避ける。
+  # APIキーは環境変数から読む。ここには書かない。
+  provider: {{provider}}
+  model: null
+  default_params: {}
+
+notes: |
+  作成日: {{created}}
