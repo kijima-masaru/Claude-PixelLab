@@ -71,6 +71,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--view", default="high top-down",
                         choices=["low top-down", "high top-down", "side"],
                         help="視点（既定: high top-down）。本作は真上見下ろし。")
+    parser.add_argument("--outline", choices=[
+        "single color black outline", "single color outline",
+        "selective outline", "lineless"],
+        help="輪郭の扱い。本作は輪郭線を使わないため lineless を基準にする。")
+    parser.add_argument("--shading", choices=[
+        "flat shading", "basic shading", "medium shading",
+        "detailed shading", "highly detailed shading"],
+        help="陰影の複雑さ。")
+    parser.add_argument("--detail", choices=[
+        "low detail", "medium detail", "highly detailed"],
+        help="描き込み密度。本作は余白と単調さを重視するため低めを基準にする。")
+    parser.add_argument("--guidance", type=float, metavar="N",
+                        help="text_guidance_scale。説明にどれだけ忠実に従うか（既定 8.0）。")
+    parser.add_argument("--color-image", metavar="PATH",
+                        help="パレット強制用の画像（プロジェクト相対）。"
+                             "negative が使えないため、これが配色の逸脱を抑える主手段になる。")
     parser.add_argument("--seed", type=int,
                         help="シード。同じ値で同じ結果が得られるかは実測で確認すること。"
                              "省略時は API 側が決めるため、再現できなくなる。")
@@ -105,6 +121,31 @@ def parse_params(pairs: list) -> dict:
                 except ValueError:
                     params[key.strip()] = value
     return params
+
+
+#: negative_description を受け付けるのは一部のエンドポイントだけである。
+#: 本作のパイロットで使う tileset / map-object には存在しない（実仕様で確認済み）。
+#: なお pixflux の negative_description は仕様上 "(Deprecated)" と明記されている。
+NEGATIVE_SUPPORTED = frozenset({"image"})
+
+
+def load_color_image(cfg: dict, rel: str) -> dict:
+    """パレット強制用の画像を Base64Image として読む。
+
+    自作のパレット画像のみを渡す。refs/ の画像を渡そうとした場合は
+    送信直前のガードが例外で止める。
+    """
+    import base64
+
+    path = config.project_dir(cfg["id"]) / rel
+    if not path.is_file():
+        raise SystemExit("color_image が見つかりません: " + str(path))
+    if path.suffix.lower() != ".png":
+        raise SystemExit("color_image は PNG にしてください: " + str(path))
+    return {
+        "type": "base64",
+        "base64": base64.b64encode(path.read_bytes()).decode("ascii"),
+    }
 
 
 def build_request(cfg: dict, args: argparse.Namespace) -> tuple:
@@ -147,9 +188,27 @@ def build_request(cfg: dict, args: argparse.Namespace) -> tuple:
         if args.kind == "map-object":
             request["view"] = args.view
         else:
-            request["transparent_background"] = True
+            # pixflux の透過フラグは no_background（transparent_background ではない）
+            request["no_background"] = True
+            request["view"] = args.view
         if args.negative_prompt:
-            request["negative_description"] = args.negative_prompt
+            if args.kind in NEGATIVE_SUPPORTED:
+                request["negative_description"] = args.negative_prompt
+            else:
+                raise SystemExit(
+                    "--negative-prompt は --kind " + args.kind + " では使えません。\n"
+                    "PixelLab の " + endpoint + " に negative 系のパラメータが存在しないためです"
+                    "（実仕様で確認済み）。\n"
+                    "配色と画風の逸脱は --color-image / --outline / --detail で抑えてください。"
+                )
+
+    for key, value in (("outline", args.outline), ("shading", args.shading),
+                       ("detail", args.detail), ("text_guidance_scale", args.guidance)):
+        if value is not None:
+            request[key] = value
+
+    if args.color_image:
+        request["color_image"] = load_color_image(cfg, args.color_image)
 
     if args.seed is not None and args.kind in ("tileset", "map-object"):
         request["seed"] = args.seed
@@ -323,7 +382,7 @@ def main(argv=None) -> int:
         print("  run_id       : " + run_id)
         print("  作業ディレクトリ: " + str(config.work_dir(args.project, run_id)))
         print("  送信予定のリクエスト:")
-        print(json.dumps(request, ensure_ascii=False, indent=2))
+        print(json.dumps(strip_images(request), ensure_ascii=False, indent=2))
         return 0
 
     return generate(cfg, endpoint, request, args, run_id)

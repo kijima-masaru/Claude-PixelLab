@@ -284,6 +284,27 @@ def write_swatch_sheet(colours: list, spec: dict, ramps: dict, path) -> None:
     img.save(path)
 
 
+def write_color_source(colours: list, path) -> None:
+    """color_image に渡すための、64色ちょうどの PNG を書き出す。
+
+    PixelLab の color_image は「使う色を含んだ画像」を受け取り、
+    その色に寄せて生成する。**本作では negative プロンプトが使えないため、
+    これがパレット外の色（西洋ファンタジー的な配色）を排除する主手段になる。**
+
+    1色1画素の 8x8 にする。余計な色が混ざらないよう補間は一切しない。
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return
+    side = 8
+    img = Image.new("RGB", (side, side), (0, 0, 0))
+    px = img.load()
+    for i, c in enumerate(colours[: side * side]):
+        px[i % side, i // side] = c["rgb"]
+    img.save(path)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="build_palette.py",
@@ -352,6 +373,11 @@ def main(argv=None) -> int:
     gpl = pal_dir / (spec["name"] + ".gpl")
     write_gpl(colours, spec, gpl)
     print("書き出し: " + str(gpl.relative_to(config.ROOT)))
+
+    source = pal_dir / (spec["name"] + "_colors.png")
+    write_color_source(colours, source)
+    if source.is_file():
+        print("書き出し: " + str(source.relative_to(config.ROOT)) + "（color_image 用）")
 
     sheet = pal_dir / (spec["name"] + "_swatches.png")
     write_swatch_sheet(colours, spec, ramps, sheet)
