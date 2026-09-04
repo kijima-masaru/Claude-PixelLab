@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """中間生成物を完成品に仕上げる後処理。
 
-    python tools/postprocess.py --project iwato --input _work/<run_id> --category backgrounds
+    python tools/postprocess.py --project iwato --input _work/<run_id> --category tilesets
 
 入力は projects/<id>/_work/ 配下の生出力、出力は projects/<id>/assets/<category>/。
 パレット・タイルサイズ・色数は project.yaml から読む。ツールに直接書かない。

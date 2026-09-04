@@ -32,7 +32,7 @@ from lib import config, genlog  # noqa: E402
 TEMPLATE_SUFFIX = ".tmpl"
 PLACEHOLDER_RE = re.compile(r"\{\{(\w+)\}\}")
 
-DEFAULT_CATEGORIES = ["backgrounds", "tilesets", "ui", "icons"]
+DEFAULT_CATEGORIES = ["tilesets", "objects", "overhead", "ui", "icons"]
 
 
 def parse_resolution(value: str) -> tuple[int, int]:

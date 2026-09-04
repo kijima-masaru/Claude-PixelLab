@@ -191,7 +191,7 @@ YYYYMMDD-HHMMSS-<4文字の乱数>
 3. 生成ログに1行追記する。新規生成でなくとも来歴は必ず残す。
 
 ```json
-{"project_id": "<dst>", "source": {"type": "derived", "from_project": "<src>", "from_asset": "assets/backgrounds/bg_shrine_01.png"}}
+{"project_id": "<dst>", "source": {"type": "derived", "from_project": "<src>", "from_asset": "assets/tilesets/tile_stone_moss.png"}}
 ```
 
 これにより各プロジェクトは自己完結し、ゲーム本体リポジトリへの取り込みも

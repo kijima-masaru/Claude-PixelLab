@@ -20,8 +20,9 @@
 
 | カテゴリ | 追記する文言 |
 | --- | --- |
-| backgrounds | （記入する） |
 | tilesets | （記入する） |
+| objects | （記入する） |
+| overhead | （記入する） |
 | ui | （記入する） |
 | icons | （記入する） |
 

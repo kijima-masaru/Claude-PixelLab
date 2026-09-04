@@ -40,7 +40,7 @@ output:
   normalmap: true
 
 # assets/ 直下に作るカテゴリ。
-asset_categories: [backgrounds, tilesets, ui, icons]
+asset_categories: [tilesets, objects, overhead, ui, icons]
 
 generation:
   # 生成サービス識別子。ここを切り替えることで特定サービスへの固着を避ける。

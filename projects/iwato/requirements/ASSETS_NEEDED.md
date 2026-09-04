@@ -376,7 +376,7 @@ PixelLab は固定単価表を公開していない。**レスポンスの `usag
 
 ## 未決事項
 
-- **`objects` / `overhead` の置き場所が未定。** `project.yaml` の `asset_categories` は現在 `backgrounds` / `tilesets` / `ui` / `icons` の4つで、単体オブジェクトの置き場所がない。カテゴリを2つ追加するか、`tilesets/` 配下に置くかを決める必要がある。**承認が必要。**
-- `backgrounds` カテゴリの用途が未確定。タイルセットで地面を組む方式のため、1枚絵の背景は現状ゼロ。タイトル画面や特殊演出で使う可能性はある。
+- ~~`objects` / `overhead` の置き場所が未定~~ → **解決済み。** `asset_categories` を `[tilesets, objects, overhead, ui, icons]` とし、Godot のレイヤー構成と1対1で対応させた。
+- ~~`backgrounds` カテゴリの用途が未確定~~ → **解決済み。** タイルセットで地面を組む方式のため1枚絵の背景は0点であり、削除した。タイトル画面などが必要になった時点で `screens` カテゴリを新設する。
 - UI とアイコンの一覧は本ファイルにのみ存在し、`fields.json` に無い。シナリオが固まった時点でアイコンは増減する。
 - 後処理のコール数（約90）は概算。`/reduce-colors` をローカルの Pillow 実装で代替できれば 0 にできる。**タスク5で判断する。**

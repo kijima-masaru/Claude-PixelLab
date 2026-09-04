@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """完成品からノーマルマップを生成する。
 
-    python tools/normalmap.py --project iwato --category backgrounds
+    python tools/normalmap.py --project iwato --category tilesets
 
 出力は元素材と同じディレクトリに <name>_n.png として置く（命名規則は
 docs/CONVENTIONS.md を参照）。Godot の CanvasTexture が期待する接尾辞に合わせている。
