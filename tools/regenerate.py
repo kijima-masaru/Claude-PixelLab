@@ -5,8 +5,9 @@
 
 **重要 — これは「復元」ツールではない。**
 
-PixelLab API は seed パラメータを受け取らず、応答にも返さない。
-したがって同じプロンプトと同じパラメータを再送しても、**同一の画像は得られない。**
+PixelLab API には seed パラメータが存在する。しかし**実測の結果、
+同一シード・同一パラメータで再送しても同一の画像は得られなかった**
+（64x64 の同一条件2回で 37.9% の画素が相違）。
 このスクリプトができるのは「当時と同じ条件でもう一度引く」ことだけである。
 
 **再現性の唯一の担保は、完成品が Git LFS にあることである。**
@@ -30,7 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib import config, genlog, guard, provider  # noqa: E402
 
-#: 引き直しに最低限必要な項目。seed は API が非対応のため含めない。
+#: 引き直しに最低限必要な項目。seed は決定論的でないため必須にしない。
 REQUIRED_FOR_REPLAY = ("prompt", "params", "provider", "endpoint")
 
 DEFAULT_MAX_IMAGES = 1
@@ -42,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="regenerate.py",
         description=(
             "生成ログに記録した条件で素材を引き直す。"
-            "API が seed に非対応のため、同一画像は復元できない（同条件での再生成のみ）。"
+            "同一シードでも同一画像にはならないため、復元ではなく同条件での再生成である。"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
@@ -100,7 +101,8 @@ def replay(cfg: dict, record: dict, out_dir: Path, args: argparse.Namespace,
         print("  実額上限に達したため送信しません。")
         return 0, 0.0
 
-    body, usd = provider.call(endpoint, request, record.get("provider", "pixellab"))
+    body, used = provider.call(endpoint, request, record.get("provider", "pixellab"))
+    usd = used["usd"]
     images = provider.extract_images(body)
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -120,6 +122,7 @@ def replay(cfg: dict, record: dict, out_dir: Path, args: argparse.Namespace,
         "adopted": None,
         "reject_reason": "",
         "estimated_cost": usd,
+        "generations_used": used["generations"],
         "replay_of": record.get("run_id"),
         "replay_note": "同条件での引き直し。seed 非対応のため元と同一の画像ではない",
     })
@@ -129,7 +132,7 @@ def replay(cfg: dict, record: dict, out_dir: Path, args: argparse.Namespace,
 
     for path in saved:
         print("    " + path.name)
-    print("    実額 $%.4f" % usd)
+    print("    使用量 $%.4f / %.1f 生成回数" % (usd, used["generations"]))
     return len(saved), usd
 
 

@@ -9,8 +9,8 @@ PixelLab の /create-tileset は1コールで16タイルを返すため、
 タイル単位で数えるとコストも工数も実態から外れる。
 
   required_tiles  -> /create-tileset      1エントリ = 1コール
-  required_objects(obj_) -> /create-map-object  1エントリ = 1コール
-  required_objects(ovh_) -> /create-map-object  1エントリ = 1コール
+  required_objects(obj_) -> /map-objects  1エントリ = 1コール
+  required_objects(ovh_) -> /map-objects  1エントリ = 1コール
 
 UI とアイコンは fields.json に持たせていない（フィールドに紐づかないため）。
 それらは ASSETS_NEEDED.md 側で列挙する。
@@ -147,12 +147,12 @@ def render_table(data: dict, agg: dict, attempts: int) -> str:
         out.append("  [%s] %-22s %2d field  %s" % (mark, tid, len(users), ",".join(users)))
     out.append("")
 
-    out.append("=== objects レイヤー（/create-map-object のコール数） ===")
+    out.append("=== objects レイヤー（/map-objects のコール数） ===")
     for asset, users in sorted(obj.items(), key=lambda kv: (-len(kv[1]), kv[0])):
         out.append("  %-30s %2d field  %s" % (asset, len(users), ",".join(users)))
     out.append("")
 
-    out.append("=== overhead レイヤー（/create-map-object のコール数） ===")
+    out.append("=== overhead レイヤー（/map-objects のコール数） ===")
     for asset, users in sorted(ovh.items(), key=lambda kv: (-len(kv[1]), kv[0])):
         out.append("  %-30s %2d field  %s" % (asset, len(users), ",".join(users)))
     out.append("")

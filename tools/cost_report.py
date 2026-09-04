@@ -71,7 +71,8 @@ def group_key(record: dict, group_by: str) -> str:
 def summarize(records, group_by: str) -> dict:
     """レコード列を集計する。件数・採否・実額の合計を返す。"""
     buckets: dict = defaultdict(lambda: {
-        "calls": 0, "images": 0, "adopted": 0, "rejected": 0, "undecided": 0, "usd": 0.0,
+        "calls": 0, "images": 0, "adopted": 0, "rejected": 0, "undecided": 0,
+        "usd": 0.0, "generations": 0.0,
     })
     for record in records:
         bucket = buckets[group_key(record, group_by)]
@@ -84,10 +85,11 @@ def summarize(records, group_by: str) -> dict:
             bucket["rejected"] += 1
         else:
             bucket["undecided"] += 1
-        try:
-            bucket["usd"] += float(record.get("estimated_cost") or 0.0)
-        except (TypeError, ValueError):
-            pass
+        for field, key in (("estimated_cost", "usd"), ("generations_used", "generations")):
+            try:
+                bucket[key] += float(record.get(field) or 0.0)
+            except (TypeError, ValueError):
+                pass
     return dict(buckets)
 
 
@@ -117,39 +119,45 @@ def main(argv=None) -> int:
     total_calls = sum(b["calls"] for b in summary.values())
     total_images = sum(b["images"] for b in summary.values())
     total_usd = sum(b["usd"] for b in summary.values())
+    total_gen = sum(b["generations"] for b in summary.values())
 
     if args.format == "json":
         print(json.dumps({"group_by": args.group_by, "summary": summary,
                           "total": {"calls": total_calls, "images": total_images,
-                                    "usd": round(total_usd, 6)}},
+                                    "usd": round(total_usd, 6),
+                                    "generations": total_gen}},
                          ensure_ascii=False, indent=2))
         return 0
 
     if args.format == "csv":
         writer = csv.writer(sys.stdout, lineterminator="\n")
         writer.writerow([args.group_by, "calls", "images", "adopted", "rejected",
-                         "undecided", "usd"])
+                         "undecided", "usd", "generations"])
         for key in sorted(summary):
             b = summary[key]
             writer.writerow([key, b["calls"], b["images"], b["adopted"],
-                             b["rejected"], b["undecided"], "%.6f" % b["usd"]])
-        writer.writerow(["TOTAL", total_calls, total_images, "", "", "", "%.6f" % total_usd])
+                             b["rejected"], b["undecided"], "%.6f" % b["usd"],
+                             "%.1f" % b["generations"]])
+        writer.writerow(["TOTAL", total_calls, total_images, "", "", "",
+                         "%.6f" % total_usd, "%.1f" % total_gen])
         return 0
 
     width = max([len(str(k)) for k in summary] + [len(args.group_by)])
-    print("%-*s  %6s %7s %6s %6s %6s %10s"
-          % (width, args.group_by, "コール", "画像", "採用", "不採用", "未決", "実額USD"))
-    print("-" * (width + 52))
+    print("%-*s  %6s %7s %6s %6s %6s %10s %8s"
+          % (width, args.group_by, "コール", "画像", "採用", "不採用", "未決",
+             "実額USD", "生成回数"))
+    print("-" * (width + 62))
     for key in sorted(summary):
         b = summary[key]
-        print("%-*s  %6d %7d %6d %6d %6d %10.4f"
+        print("%-*s  %6d %7d %6d %6d %6d %10.4f %8.1f"
               % (width, key, b["calls"], b["images"], b["adopted"],
-                 b["rejected"], b["undecided"], b["usd"]))
-    print("-" * (width + 52))
-    print("%-*s  %6d %7d %6s %6s %6s %10.4f"
-          % (width, "合計", total_calls, total_images, "", "", "", total_usd))
+                 b["rejected"], b["undecided"], b["usd"], b["generations"]))
+    print("-" * (width + 62))
+    print("%-*s  %6d %7d %6s %6s %6s %10.4f %8.1f"
+          % (width, "合計", total_calls, total_images, "", "", "", total_usd, total_gen))
     print("")
-    print("※ 実額はレスポンスの usage.usd の合計です。推定値ではありません。")
+    print("※ いずれもレスポンスの実測値の合計です。推定値ではありません。")
+    print("※ 従量課金なら usage.usd、回数制なら billing_usage.generations に載ります。")
     return 0
 
 
