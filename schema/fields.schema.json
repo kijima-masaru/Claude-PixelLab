@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kijima-masaru/Claude-PixelLab/schema/fields.schema.json",
+  "title": "Field definition",
+  "description": "projects/<project_id>/requirements/fields.json のスキーマ。素材の発注リストの母体であると同時に、ゲーム本体リポジトリへコピーしてマップ構成データとして使うことを想定している。",
+  "type": "object",
+  "required": ["schema_version", "project_id", "tile_size", "screen_tiles", "topology_constraints", "terrain_vocabulary", "fields"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "description": "このファイル形式のバージョン。破壊的変更で繰り上げる。",
+      "minimum": 1
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "tile_size": {
+      "type": "integer",
+      "description": "タイル1辺のピクセル数。project.yaml の canvas.tile_size と一致させること。",
+      "minimum": 1
+    },
+    "screen_tiles": {
+      "type": "object",
+      "description": "1画面が何タイル分か。基準解像度 / tile_size。size_tiles の妥当性判定に使う。",
+      "required": ["w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "w": { "type": "number", "exclusiveMinimum": 0 },
+        "h": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "size_guideline_screens": {
+      "type": "object",
+      "description": "1フィールドの面積の目安（画面数）。exempt に挙げた ID はこの範囲を超えてよい。",
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "exempt": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "topology_constraints": {
+      "type": "array",
+      "description": "接続の制約。検証スクリプトはこの配列を読んで検査するため、ツール側にフィールドIDを書かずに済む。",
+      "items": {
+        "type": "object",
+        "required": ["type", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["exits_exactly", "gated_entry", "choke_point", "all_reachable", "boundary"],
+            "description": "exits_exactly=接続先が指定集合と完全一致 / gated_entry=このフィールドへ入る接続が全て gated / choke_point=via を除くと from から到達不能 / all_reachable=from から全フィールドへ到達可能 / boundary=文書上の不変条件（検査は行わず記録のみ）"
+          },
+          "field": { "type": "string", "pattern": "^F[0-9]{2}$" },
+          "to": { "type": "array", "items": { "type": "string", "pattern": "^F[0-9]{2}$" } },
+          "via": { "type": "string", "pattern": "^F[0-9]{2}$" },
+          "from": { "type": "string", "pattern": "^F[0-9]{2}$" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "terrain_vocabulary": {
+      "type": "array",
+      "description": "required_tiles の lower / upper / transition に使ってよい地形語の統制語彙。表記ゆれを防ぎ、タイルセットの重複発注を検出できるようにする。",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["key", "en", "ja"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "en": { "type": "string", "description": "API のプロンプトに渡す英語表現。" },
+          "ja": { "type": "string", "description": "人間向けの日本語名。" }
+        }
+      }
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/field" }
+    }
+  },
+  "$defs": {
+    "asset_id": {
+      "type": "string",
+      "description": "素材ID。docs/CONVENTIONS.md の命名規則（小文字英数とアンダースコアのみ）に従う。接頭辞で描画レイヤーを表す。",
+      "pattern": "^(tile|obj|ovh|ui|icon)_[a-z0-9_]+$"
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "id", "name", "reading", "world_pos", "size_tiles", "elevation",
+        "biome", "horror_core", "landmarks", "interactables",
+        "required_tiles", "required_objects", "ambience", "exits"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^F[0-9]{2}$",
+          "description": "フィールドID。F01〜。"
+        },
+        "name": { "type": "string", "description": "フィールド名（日本語）。" },
+        "reading": { "type": "string", "description": "読み（ひらがな）。実在の地名を使わないこと。" },
+        "world_pos": {
+          "type": "object",
+          "description": "町全体におけるおおよその位置。マップ画面と方角の整合に使う。原点は町域の北西角、x は東、y は南、単位はメートル。",
+          "required": ["x_m", "y_m"],
+          "additionalProperties": false,
+          "properties": {
+            "x_m": { "type": "integer", "minimum": 0 },
+            "y_m": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "size_tiles": {
+          "type": "object",
+          "description": "プレイ可能領域のタイル数。tile_size 前提で算出する。",
+          "required": ["w", "h"],
+          "additionalProperties": false,
+          "properties": {
+            "w": { "type": "integer", "minimum": 1 },
+            "h": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "elevation": {
+          "type": "integer",
+          "description": "標高（メートル）。西が低く東へ上がる。時間帯の光の入り方と気温感の指針にする。"
+        },
+        "biome": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "description": "地物の性格を表す分類。同じ biome のフィールドはタイルを共有しやすい。"
+        },
+        "horror_core": {
+          "type": "string",
+          "description": "このフィールドの『怖さの核』。素材の取捨選択はこれを基準に判断する。"
+        },
+        "landmarks": {
+          "type": "array",
+          "description": "そのフィールドを識別させる目印。",
+          "items": {
+            "type": "object",
+            "required": ["id", "name"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "name": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "interactables": {
+          "type": "array",
+          "description": "調べられる／作用できる対象。",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "asset"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "name": { "type": "string" },
+              "asset": { "$ref": "#/$defs/asset_id" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "required_tiles": {
+          "type": "array",
+          "description": "ground レイヤーのタイルセット要件。1エントリが PixelLab の /create-tileset 1コールに対応する。",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "lower", "upper", "shared"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/asset_id" },
+              "label": { "type": "string", "description": "人間向けの日本語名。" },
+              "lower": { "type": "string", "description": "下側の地形。terrain_vocabulary の key。/create-tileset の lower_description になる。" },
+              "upper": { "type": "string", "description": "上側の地形。terrain_vocabulary の key。/create-tileset の upper_description になる。" },
+              "transition": { "type": ["string", "null"], "description": "境界の地形。terrain_vocabulary の key か null。/create-tileset の transition_description になる。" },
+              "shared": { "type": "boolean", "description": "複数フィールドで使い回すか。true のものから先に作る。" }
+            }
+          }
+        },
+        "required_objects": {
+          "type": "array",
+          "description": "objects / overhead レイヤーに置く単体オブジェクト。PixelLab の /create-map-object 1コールに対応する。",
+          "items": { "$ref": "#/$defs/asset_id" }
+        },
+        "sub_maps": {
+          "type": "array",
+          "description": "屋内など、別マップとして持つ領域。F11 のような複数フロアのダンジョンで使う。",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "size_tiles", "required_tiles", "required_objects"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^F[0-9]{2}_[A-Z0-9]+$" },
+              "name": { "type": "string" },
+              "size_tiles": {
+                "type": "object",
+                "required": ["w", "h"],
+                "additionalProperties": false,
+                "properties": {
+                  "w": { "type": "integer", "minimum": 1 },
+                  "h": { "type": "integer", "minimum": 1 }
+                }
+              },
+              "required_tiles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["id", "label", "lower", "upper", "shared"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": { "$ref": "#/$defs/asset_id" },
+                    "label": { "type": "string" },
+                    "lower": { "type": "string" },
+                    "upper": { "type": "string" },
+                    "transition": { "type": ["string", "null"] },
+                    "shared": { "type": "boolean" }
+                  }
+                }
+              },
+              "required_objects": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/asset_id" }
+              },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "ambience": {
+          "type": "string",
+          "description": "音と空気の指定。素材の密度と彩度の判断材料にする。"
+        },
+        "time_variants": {
+          "type": "array",
+          "description": "このフィールドで必要になる時間帯の差分。素材点数に直結する。",
+          "items": { "type": "string", "enum": ["morning", "day", "dusk", "night"] }
+        },
+        "content_constraints": {
+          "type": "array",
+          "description": "このフィールドで描いてはならないものの明示。描写制約をデータとして持ち回り、プロンプト生成時に必ず参照する。",
+          "items": { "type": "string" }
+        },
+        "exits": {
+          "type": "array",
+          "description": "接続先。双方向であること（A→B があれば B→A も必要）を検証スクリプトで確認する。",
+          "items": {
+            "type": "object",
+            "required": ["to", "via", "kind", "gated"],
+            "additionalProperties": false,
+            "properties": {
+              "to": { "type": "string", "pattern": "^F[0-9]{2}$" },
+              "via": { "type": "string", "description": "接続経路の名前。" },
+              "kind": {
+                "type": "string",
+                "enum": ["road", "path", "stairs", "tunnel", "bridge", "trail", "alley", "underpass"]
+              },
+              "gated": { "type": "boolean", "description": "進行状況による進入制限があるか。" },
+              "gate": { "type": "string", "description": "gated=true のときの解放条件。" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

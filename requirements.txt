@@ -1,3 +1,4 @@
 # 素材制作パイプラインの依存パッケージ
-PyYAML>=6.0      # project.yaml の読み込み
-Pillow>=10.0     # 後処理・検証・ノーマルマップ生成の画像処理
+PyYAML>=6.0        # project.yaml の読み込み
+Pillow>=10.0       # 後処理・検証・ノーマルマップ生成の画像処理
+jsonschema>=4.0    # project.yaml / fields.json のスキーマ検証
