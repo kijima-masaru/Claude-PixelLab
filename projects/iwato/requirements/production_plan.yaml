@@ -162,7 +162,7 @@ roof_tilesets:
 #   タイルセットから外した特徴と、もともと平坦だったオブジェクト。
 # ---------------------------------------------------------------------
 deco:
-  deco_line_parking:  { class: deco, note: 駐車場の白線。tile_parking_line から分離 }
+  deco_line_parking:  { class: deco, note: "駐車場の白線。tile_parking_line から分離。統制語彙からも painted_line を削除した（素材ではなく特徴）" }
   deco_line_gym:      { class: deco, note: 体育館のライン。tile_gym_floor から分離 }
   deco_grating:       { class: deco, note: グレーチング。tile_asphalt_curb から分離 }
   deco_manhole:       { class: deco, note: マンホール蓋。新規。日本の路面の記号 }

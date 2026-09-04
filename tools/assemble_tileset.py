@@ -42,7 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
                         help="出力 PNG。省略時は入力ディレクトリに assembled.png。")
     parser.add_argument("--scale", type=int, default=3, help="拡大率（既定: 3）。")
     parser.add_argument("--mask", default="island",
-                        choices=["island", "road", "checker"],
+                        choices=["island", "road", "isolated", "checker"],
                         help="テスト用の地形マスク（既定: island）。")
     return parser
 
@@ -72,6 +72,19 @@ MASKS = {
         "1110000111",
         "0000000000",
     ],
+    # 孤立点。**1点の物をタイルセットで作れるかを検証するためのマスク。**
+    # 角が1つだけ upper のタイルを 2x2 で並べると、上地形の丸い塊が
+    # 1つだけ現れる。電柱のような点の物が作れるかはこれで分かる。
+    "isolated": [
+        "0000000000",
+        "0010001000",
+        "0000000000",
+        "0001000100",
+        "0000000000",
+        "0010001000",
+        "0000000000",
+        "0000000000",
+    ],
     # 市松。最も過酷な条件で、全16パターンが確実に出る
     "checker": [
         "0101010101",
@@ -99,6 +112,16 @@ def load_tiles(path: Path) -> tuple:
 
     out = []
     for t in tiles:
+        # 完成品（assets/）のメタデータは base64 を持たず、隣の PNG を指す。
+        # base64 をテキストで二重に持つと、LFS の外で数十KB が git に載るため。
+        if t.get("file"):
+            out.append({
+                "id": t.get("id"),
+                "name": t.get("name"),
+                "corners": t.get("corners") or {},
+                "image": (path.parent / t["file"]).read_bytes(),
+            })
+            continue
         img = t.get("image") or {}
         b64 = img.get("base64") if isinstance(img, dict) else img
         if not b64:
@@ -155,6 +178,18 @@ def assemble(tiles: list, tile_size: tuple, mask: list) -> tuple:
     return canvas, missing
 
 
+def _upper_ratio(tile: dict) -> float:
+    """そのタイルの角のうち upper が占める割合。0.0〜1.0。
+
+    1点の物を作る場合、使えるのは upper が少ないタイル（孤立した角）と
+    upper だけのタイルに限られる。中間のタイルは地形の境界用であり、
+    点の物には使い道がない。その判断材料にする。
+    """
+    c = tile.get("corners") or {}
+    vals = [c.get(k) for k in ("NW", "NE", "SW", "SE")]
+    return sum(1 for v in vals if v == "upper") / 4.0
+
+
 def contact_sheet(tiles: list, tile_size: tuple, scale: int) -> Image.Image:
     """16タイルを単体で並べた一覧を作る。"""
     import io
@@ -170,6 +205,7 @@ def contact_sheet(tiles: list, tile_size: tuple, scale: int) -> Image.Image:
         x = pad + (i % cols) * (tw + pad)
         y = pad + (i // cols) * (th + pad)
         sheet.paste(img, (x, y), img)
+        t["_upper_ratio"] = _upper_ratio(t)
     return sheet.resize((sheet.width * scale, sheet.height * scale), Image.NEAREST)
 
 
@@ -206,9 +242,23 @@ def main(argv=None) -> int:
                         Image.NEAREST)
     big.save(out)
     print("")
+    print("")
+    print("角の upper 比率ごとのタイル数（1点の物では偏りが問題になる）:")
+    from collections import Counter
+    dist = Counter(_upper_ratio(t) for t in tiles)
+    for r in sorted(dist):
+        print("    upper %d/4 : %2d 枚" % (int(r * 4), dist[r]))
+    print("")
     print("敷き詰め: %s（マスク=%s, %dx%d を %d倍）"
           % (out.relative_to(config.ROOT) if out.is_relative_to(config.ROOT) else out,
              args.mask, canvas.width, canvas.height, args.scale))
+
+    # 暗い素材は、明背景と暗背景の両方に置かないと
+    # 透過部分と暗部の区別がつかない。両方を並べて出す。
+    for name, bg in (("_on_dark", (26, 26, 30, 255)), ("_on_light", (222, 222, 226, 255))):
+        plate = Image.new("RGBA", big.size, bg)
+        plate.alpha_composite(big)
+        plate.save(out.with_name(out.stem + name + ".png"))
 
     sheet_path = out.with_name(out.stem + "_tiles.png")
     contact_sheet(tiles, tile_size, args.scale).save(sheet_path)

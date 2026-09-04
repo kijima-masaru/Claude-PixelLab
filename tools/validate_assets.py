@@ -20,7 +20,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib import config, imageops  # noqa: E402
 
-CHECKS = ("palette", "grid", "alpha", "size")
+CHECKS = ("palette", "grid", "alpha", "size", "layout")
+
+#: 中間生成物に付く名前。assets/ に現れてはならない。
+#: 敷き詰めの確認画像（tools/assemble_tileset.py の出力）が
+#: 手作業で assets/ にコピーされる事故が実際に起きたため、名前で検出する。
+INTERMEDIATE_STEMS = ("assembled", "assembled_on_dark", "assembled_on_light",
+                      "assembled_tiles", "island", "island_on_dark",
+                      "island_on_light", "island_tiles",
+                      "field_lower", "field_upper", "contact_sheet")
 
 #: ノーマルマップの接尾辞。法線の色はパレット外になるのが正しいため、
 #: パレット検査の対象から自動的に外す（グリッドとサイズは検査する）。
@@ -87,6 +95,42 @@ def check_size(image, cfg: dict) -> list:
     return []
 
 
+def check_layout(cfg: dict) -> list:
+    """assets/ の構造そのものを検査する。**画像1枚ずつでは気づけない事故を拾う。**
+
+    見るのは2つ。
+
+      1. **カテゴリ直下に緩い PNG が置かれていないか。**
+         完成品は `assets/<category>/<素材名>/` にまとまるのが規約である。
+         直下に PNG があるのは、確認画像を手でコピーした跡である可能性が高い
+      2. **中間生成物の名前を持つファイルが無いか。**
+         `assembled*.png` などは敷き詰めの確認用であって完成品ではない
+
+    実際に、却下したタイルセットの確認画像20枚が `assets/tilesets/` 直下に
+    残っていた。素材が増えれば埋もれる。ゆえにコードで見張る。
+    """
+    problems = []
+    assets = config.assets_dir(cfg["id"])
+    if not assets.is_dir():
+        return problems
+    for category in sorted(cfg["asset_categories"]):
+        directory = assets / category
+        if not directory.is_dir():
+            continue
+        loose = sorted(p for p in directory.iterdir()
+                       if p.is_file() and p.suffix.lower() == ".png")
+        for path in loose:
+            problems.append(
+                "%s: カテゴリ直下に PNG があります。完成品は素材名のディレクトリへ入れること"
+                % path.relative_to(config.ROOT))
+        for path in sorted(directory.rglob("*.png")):
+            if path.stem in INTERMEDIATE_STEMS:
+                problems.append(
+                    "%s: 中間生成物の名前です。**assets/ に確認画像を置かないこと**"
+                    % path.relative_to(config.ROOT))
+    return problems
+
+
 def collect_targets(cfg: dict, args: argparse.Namespace) -> list:
     project = config.project_dir(cfg["id"])
     if args.path:
@@ -125,6 +169,8 @@ def main(argv=None) -> int:
         palette = imageops.load_palette(path)
         palette_label = str(rel) + "（" + str(len(palette)) + "色）"
 
+    layout_problems = check_layout(cfg) if "layout" in args.check else []
+
     targets = collect_targets(cfg, args)
     tile = cfg["canvas"]["tile_size"]
     max_colors = cfg["palette"]["max_colors"]
@@ -137,11 +183,17 @@ def main(argv=None) -> int:
         print("検査枚数  : " + str(len(targets)))
         print("")
 
+    if layout_problems:
+        print("[NG] assets/ の構造")
+        for problem in layout_problems:
+            print("     - " + problem)
+        print("")
+
     if not targets:
         print("検査対象の完成品がありません。")
-        return 0
+        return 1 if layout_problems else 0
 
-    failed = 0
+    failed = len(layout_problems)
     for path in targets:
         image = imageops.load_rgba(path)
         is_normalmap = path.stem.endswith(NORMALMAP_SUFFIX)
