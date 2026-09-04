@@ -68,6 +68,10 @@ def main(argv=None) -> int:
     for asset in sorted(assets, key=lambda a: a.get("order", 0)):
         aid = asset["id"]
         kind = "tileset" if asset["endpoint"] == "/create-tileset" else "map-object"
+        # use_common_affix: false の素材は共通接辞を付けない。
+        # タイルセットで判明した「共通文が素材の語を希釈する」問題への対応。
+        pre = "" if asset.get("use_common_affix") is False else prefix
+        suf = "" if asset.get("use_common_affix") is False else suffix
 
         # client.py と同じ経路でリクエストを組み立てる
         argv_ = ["--project", args.project, "--kind", kind, "--name", aid,
@@ -79,13 +83,13 @@ def main(argv=None) -> int:
         if controls.get("color_image"):
             argv_ += ["--color-image", controls["color_image"]]
         if kind == "tileset":
-            argv_ += ["--lower", " ".join([prefix, asset["lower_description"], suffix]),
-                      "--upper", " ".join([prefix, asset["upper_description"], suffix])]
+            argv_ += ["--lower", " ".join(x for x in [pre, asset["lower_description"], suf] if x),
+                      "--upper", " ".join(x for x in [pre, asset["upper_description"], suf] if x)]
             if asset.get("transition_description"):
                 argv_ += ["--transition", asset["transition_description"]]
         else:
             size = (asset.get("params") or {}).get("image_size") or {}
-            argv_ += ["--description", " ".join([prefix, asset["description"], suffix]),
+            argv_ += ["--description", " ".join(x for x in [pre, asset["description"], suf] if x),
                       "--size", str(size.get("width", 64)),
                       "--view", controls.get("view", "high top-down")]
 

@@ -95,6 +95,24 @@
 4. **CI への組み込み** — `validate_assets.py` と `tests/test_guard.py` を
    PR 時に回す構成を検討する。
 
+## パイロットの結果（2026-09-04）
+
+F06 パイロットで **10 generations** を使い、画風の可否を判断した。
+**知見は [PILOT_FINDINGS.md](PILOT_FINDINGS.md) にまとめてある。量産前に必ず読むこと。**
+
+**成立したもの**
+- パレット強制（`color_image`）が5回すべてでパレット外0色。negative が使えない問題は解決済み
+- タイルセットの接続が完全（16/16 の角の組み合わせ、欠落ゼロ）
+- 意匠・色彩設計。西洋ファンタジーの混入なし
+
+**未解決**
+- **高さのある単体物24点の作り方。** `/map-objects` はアイソメ、
+  `/create-image-pixflux` は正面立面になる。**真上見下ろしを出せるのは
+  `/create-tileset` だけ**である
+
+作り方の全体像は
+[production_plan.yaml](../projects/iwato/requirements/production_plan.yaml) を参照。
+
 ## 未決の事項
 
 - **`PIXELLAB_API_KEY` が未設定。** 生成に着手する前に環境変数へ設定すること。
