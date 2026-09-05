@@ -58,6 +58,7 @@ godot --path godot_preview
 godot --path godot_preview -- --auto      # 時間帯ごと
 godot --path godot_preview -- --stages    # 段階ごと
 godot --path godot_preview -- --shadows   # 影の作り方4通り
+godot --path godot_preview -- --levels    # 影の濃さ3段階＋影なしの基準（第29節）
 godot --path godot_preview -- --sweep     # Light2D.height の総当たり（第22節）
 ```
 
@@ -87,4 +88,7 @@ godot --path godot_preview -- --sweep     # Light2D.height の総当たり（第
   本来の設計（時間帯ごとにパレットを差し替える）はシェーダで行うもので、
   ここではやっていない。**色の出方は本番と一致しない。**
 - 地形は F01（国道沿い）を模した仮組みであり、**フィールドの正式な配置ではない。**
-- 影の濃さは**撮った画素を測って**決めた（PILOT_FINDINGS 第26節）。
+- 影の濃さは**撮った画素を測って**決めた（PILOT_FINDINGS 第26・29節）。
+  参考画像の実測値 0.120 に対し、採用した設定は**芯で 0.127**。
+  `--level=0..2` で3段階を切り替えられる（既定は 2）。
+  測り直すには `tools/measure_shadow.py` を使う。

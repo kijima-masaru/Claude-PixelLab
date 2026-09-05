@@ -33,6 +33,32 @@ const H := 14
 ## 受光の層。**地面は影を受け、立ち物は受けない。**
 ##   真上見下ろしの画面では、影は地面に落ちる。立ち物どうしが互いの影で
 ##   暗くなると、**何が置いてあるか読めなくなる**（32px では致命的である）。
+## 影の濃さの段階。**測って決める。**
+##
+## 参考画像（依頼者の自作ゲーム）を測ったところ、路面の
+## **影の芯 / 日向の芯 = 0.120** だった。こちらは 0.37〜0.49 で、**3〜4倍明るい。**
+## 「暗すぎるかもしれない」で手加減していたのが誤りだった。
+## **本作はホラーであり、暗さは欠点ではない。**
+##
+##   0 これまで（明度比 0.37 前後）
+##   1 中間
+##   2 参考画像相当（**目標 0.12**）
+##
+##   alpha  影の濃さの倍率        floor  影の遠い端の濃さ（1.0 で輪郭が硬い）
+##   amb    環境光の倍率          len    太陽の影の長さの倍率
+##   smooth 遮蔽の影のぼかし（小さいほど硬い）
+const SHADOW_LEVELS := [
+	{"alpha": 1.00, "floor": 0.28, "amb": 1.00, "len": 1.00, "smooth": 3.0},
+	{"alpha": 1.55, "floor": 0.58, "amb": 0.84, "len": 1.45, "smooth": 1.4},
+	{"alpha": 2.30, "floor": 0.86, "amb": 0.66, "len": 1.90, "smooth": 0.5},
+]
+var _shadow_level := 2
+
+
+func _lv(key: String) -> float:
+	return float(SHADOW_LEVELS[_shadow_level][key])
+
+
 ## 影の色。**黒ではなく藍。** 参考画像の「暖色の光 対 寒色の影」の、寒色側。
 ##
 ## 最初は乗算（`BLEND_MODE_MUL`）で置いた。地面の色を保ったまま暗くできる
@@ -40,7 +66,7 @@ const H := 14
 ## 真っ白なテクスチャに差し替えても暗さが変わらなかった（実測で確認した）。
 ## **挙動を説明できないものに頼らない。** 通常のアルファ合成に戻し、
 ## 濃さは撮った画素を測って決めた。
-const SHADOW_RGB := Color(0.05, 0.06, 0.13)
+const SHADOW_RGB := Color(0.035, 0.042, 0.085)
 
 const MASK_GROUND := 1
 const MASK_OBJECT := 2
@@ -85,9 +111,9 @@ const BLOOM_GAIN := {0: 0.28, 1: 0.10, 2: 0.34, 3: 0.50}
 ##   dir …… 影の伸びる向き（画面座標）  len …… 物の高さに対する影の長さ
 ## 朝と夕は低いので長く、真昼は高いので短い。**夜は無い。**
 const SUN := {
-	0: {"dir": Vector2(0.86, 0.51), "len": 1.05, "a": 0.50},   # 朝  東から
-	1: {"dir": Vector2(0.22, 0.98), "len": 0.38, "a": 0.52},   # 昼  ほぼ真上
-	2: {"dir": Vector2(-0.90, 0.44), "len": 1.20, "a": 0.52},  # 夕  西から
+	0: {"dir": Vector2(0.86, 0.51), "len": 1.45, "a": 0.50},   # 朝  東から
+	1: {"dir": Vector2(0.22, 0.98), "len": 0.55, "a": 0.52},   # 昼  ほぼ真上
+	2: {"dir": Vector2(-0.90, 0.44), "len": 1.55, "a": 0.52},  # 夕  西から
 }
 
 ## 光源。位置・色・強さ・広がり・**高さ（画素）**。
@@ -126,7 +152,9 @@ func _ready() -> void:
 			_height_scale = float(a.split("=")[1])
 		if a.begins_with("--shadow="):
 			_shadow_mode = int(a.split("=")[1])
-		if a == "--sweep" or a == "--auto" or a == "--stages" or a == "--shadows":
+		if a.begins_with("--level="):
+			_shadow_level = int(a.split("=")[1])
+		if a == "--sweep" or a == "--auto" or a == "--stages" or a == "--shadows" 				or a == "--levels":
 			auto = a
 	_build_all()
 	if auto != "":
@@ -299,7 +327,8 @@ func _add_contact_shadow(foot: Vector2, span: Vector2) -> void:
 	var width: float = max(span.y - span.x, 6.0) * 0.90
 	s.position = foot + Vector2((span.x + span.y) * 0.5, -2.0)
 	s.scale = Vector2(width / 64.0, width / 64.0 * 0.20)
-	s.modulate = Color(SHADOW_RGB.r, SHADOW_RGB.g, SHADOW_RGB.b, 0.62)
+	s.modulate = Color(SHADOW_RGB.r, SHADOW_RGB.g, SHADOW_RGB.b,
+		clampf(0.62 * _lv("alpha"), 0.0, 0.97))
 	s.light_mask = 0            # **光を受けない。** 遮蔽は光の有無と無関係
 	_shadows.add_child(s)
 
@@ -326,7 +355,7 @@ func _add_cast_shadows(tex: Texture2D, foot: Vector2, span: Vector2) -> void:
 	if SUN.has(_time_index):
 		var sun: Dictionary = SUN[_time_index]
 		lit.append({"a": float(sun["a"]), "dir": (sun["dir"] as Vector2).normalized(),
-			"k": float(sun["len"])})
+			"k": float(sun["len"]) * _lv("len")})
 	# **人工光の影。** 昼は点いていないので落ちない（第23節）。
 	var gain: float = LIGHT_GAIN[_time_index]
 	for spec in LIGHTS:
@@ -338,7 +367,8 @@ func _add_cast_shadows(tex: Texture2D, foot: Vector2, span: Vector2) -> void:
 		if w > 0.05:
 			lit.append({"a": clampf(w * 0.62, 0.0, 0.72),
 				"dir": to.normalized(),
-				"k": clampf(to.length() / (float(spec["height"]) * 4.5), 0.25, 0.90)})
+				"k": clampf(to.length() / (float(spec["height"]) * 4.5), 0.25, 0.90)
+					* _lv("len")})
 	if lit.is_empty():
 		return
 	lit.sort_custom(func(a, b): return a["a"] > b["a"])
@@ -354,7 +384,7 @@ func _add_cast_shadows(tex: Texture2D, foot: Vector2, span: Vector2) -> void:
 		# 画面の高さを超える。640x360 で読める長さに収める。
 		var k: float = float(e["k"])
 		var s := Sprite2D.new()
-		var strength: float = float(e["a"]) * (0.55 if i else 1.0)
+		var strength: float = clampf(float(e["a"]) * _lv("alpha"), 0.0, 0.97) 			* (0.70 if i else 1.0)
 		s.texture = _silhouette_texture(tex)
 		s.centered = false
 		s.transform = Transform2D(Vector2(1, 0), -dir * k, foot - Vector2(cx, 0) + dir * k * h)
@@ -370,7 +400,7 @@ var _silhouette_cache := {}
 ## シルエットを、**階調つきの影**に焼き直す。
 ## アルファだけを使う。**天辺（＝影の遠い端）ほど薄い。**
 func _silhouette_texture(tex: Texture2D) -> Texture2D:
-	var key: String = tex.resource_path
+	var key: String = "%s#%d" % [tex.resource_path, _shadow_level]
 	if _silhouette_cache.has(key):
 		return _silhouette_cache[key]
 	var src := tex.get_image()
@@ -380,7 +410,7 @@ func _silhouette_texture(tex: Texture2D) -> Texture2D:
 	for y in range(h):
 		# **遠い端ほど薄い。** 影は物から離れるほどぼやけて消える。
 		var t: float = float(y) / float(max(h - 1, 1))
-		var a: float = lerp(0.28, 1.0, pow(t, 0.8))
+		var a: float = lerp(_lv("floor"), 1.0, pow(t, 0.8))
 		for x in range(w):
 			img.set_pixel(x, y, Color(1, 1, 1, a if src.get_pixel(x, y).a > 0.5 else 0.0))
 	_silhouette_cache[key] = ImageTexture.create_from_image(img)
@@ -432,12 +462,13 @@ func _add_light(spec: Dictionary, mask: int, shadow: bool) -> void:
 	if shadow:
 		l.shadow_item_cull_mask = MASK_GROUND
 		l.shadow_filter = Light2D.SHADOW_FILTER_PCF13
-		l.shadow_filter_smooth = 3.0
+		l.shadow_filter_smooth = _lv("smooth")
 		# **影は黒で塗らない。** 加算ライトの影なので、ここで指定するのは
 		# 「影の中で、その光が代わりに落とす分」である。**藍を薄く残す。**
 		# **黒に近づけないこと。** 0.90 で撮ったら、自販機の後ろが
 		# 「地面に空いた黒い長方形」になった。遮蔽は暗さであって穴ではない。
-		l.shadow_color = Color(0.08, 0.09, 0.17, 0.68)
+		l.shadow_color = Color(SHADOW_RGB.r, SHADOW_RGB.g, SHADOW_RGB.b,
+			clampf(0.68 * _lv("alpha"), 0.0, 0.97))
 	l.set_meta("base_energy", spec["energy"])
 	l.set_meta("moon", spec["moon"])
 	_light_root.add_child(l)
@@ -575,7 +606,10 @@ func _build_hud() -> void:
 
 func _apply_time() -> void:
 	# **色調は光の入切と独立**。消灯した夜は「真っ暗な夜」であって昼ではない。
-	_modulate.color = TINTS[_time_index]
+	# **環境光を下げる。** 影の中が「暗いが見える」状態は明るすぎる。
+	var amb: float = _lv("amb")
+	var t: Color = TINTS[_time_index]
+	_modulate.color = Color(t.r * amb, t.g * amb, t.b * amb)
 	_light_root.visible = _lights_on
 	for child in _light_root.get_children():
 		var l := child as PointLight2D
@@ -669,6 +703,30 @@ func _stages() -> void:
 	_time_index = 2
 	await _rebuild()
 	await _save("stage_3_dusk")
+	get_tree().quit()
+
+
+## **影の濃さを3段階で撮る。** 参考画像と同じ「斜めの光」で比べたいので夕方。
+func _levels() -> void:
+	_time_index = 2
+	_lights_on = true
+	_normals_on = true
+	_stage = 3
+	for lv in [0, 1, 2]:
+		_shadow_level = lv
+		_shadow_mode = 7
+		await _rebuild()
+		await _save("level_%d" % lv)
+		# **同じ環境光で、影だけを外した絵。** 影の中と外を測る基準になる。
+		# 段階ごとに環境光が違うので、基準も段階ごとに要る。
+		_shadow_mode = 0
+		await _rebuild()
+		await _save("level_%d_base" % lv)
+	_shadow_mode = 7
+	_shadow_level = 2
+	_time_index = 3
+	await _rebuild()
+	await _save("level_2_night")
 	get_tree().quit()
 
 
