@@ -1,0 +1,973 @@
+{
+  "schema_version": 2,
+  "name": "tile_infield",
+  "note": "",
+  "source": {
+    "command": "tools/tile_procedural.py --project iwato --name tile_infield --lower warm --lower-range 0,1 --lower-pattern noise --upper green --upper-range 0.2,1 --upper-pattern noise --out _work/tile_infield --seed 28",
+    "palette": "palettes/iwato_colors_terrain.png"
+  },
+  "measured": {
+    "lower": {
+      "roughness": 4.450341126543219,
+      "grain_ratio": 0.28594535196270665,
+      "grid_visibility": 0.017492678157710252,
+      "hue_spread": 0.6060606060605664,
+      "colours": 2
+    },
+    "upper": {
+      "roughness": 4.867662397762352,
+      "grain_ratio": 0.3332395188192447,
+      "grid_visibility": 0.02477248403500038,
+      "hue_spread": 12.920930232558192,
+      "colours": 2
+    }
+  },
+  "tile_size": {
+    "width": 32,
+    "height": 32
+  },
+  "terrain_types": [
+    "lower",
+    "upper"
+  ],
+  "tiles": [
+    {
+      "name": "wang_0",
+      "file": "wang_0.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_1",
+      "file": "wang_1.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_2",
+      "file": "wang_2.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_3",
+      "file": "wang_3.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_4",
+      "file": "wang_4.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_5",
+      "file": "wang_5.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_6",
+      "file": "wang_6.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_7",
+      "file": "wang_7.png",
+      "corners": {
+        "NW": "lower",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_8",
+      "file": "wang_8.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_9",
+      "file": "wang_9.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_10",
+      "file": "wang_10.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_11",
+      "file": "wang_11.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "lower",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_12",
+      "file": "wang_12.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_13",
+      "file": "wang_13.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "lower",
+        "SE": "upper"
+      }
+    },
+    {
+      "name": "wang_14",
+      "file": "wang_14.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "lower"
+      }
+    },
+    {
+      "name": "wang_15",
+      "file": "wang_15.png",
+      "corners": {
+        "NW": "upper",
+        "NE": "upper",
+        "SW": "upper",
+        "SE": "upper"
+      }
+    }
+  ],
+  "supertile": {
+    "width": 8,
+    "height": 8,
+    "order": "row-major",
+    "note": "**元の並び順で置くこと。** ランダムに置くと連続性が壊れる。",
+    "lower": [
+      {
+        "name": "super_lower_00",
+        "file": "super_lower_00.png",
+        "row": 0,
+        "col": 0
+      },
+      {
+        "name": "super_lower_01",
+        "file": "super_lower_01.png",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "name": "super_lower_02",
+        "file": "super_lower_02.png",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "name": "super_lower_03",
+        "file": "super_lower_03.png",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "name": "super_lower_04",
+        "file": "super_lower_04.png",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "name": "super_lower_05",
+        "file": "super_lower_05.png",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "name": "super_lower_06",
+        "file": "super_lower_06.png",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "name": "super_lower_07",
+        "file": "super_lower_07.png",
+        "row": 0,
+        "col": 7
+      },
+      {
+        "name": "super_lower_08",
+        "file": "super_lower_08.png",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "name": "super_lower_09",
+        "file": "super_lower_09.png",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "name": "super_lower_10",
+        "file": "super_lower_10.png",
+        "row": 1,
+        "col": 2
+      },
+      {
+        "name": "super_lower_11",
+        "file": "super_lower_11.png",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "name": "super_lower_12",
+        "file": "super_lower_12.png",
+        "row": 1,
+        "col": 4
+      },
+      {
+        "name": "super_lower_13",
+        "file": "super_lower_13.png",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "name": "super_lower_14",
+        "file": "super_lower_14.png",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "name": "super_lower_15",
+        "file": "super_lower_15.png",
+        "row": 1,
+        "col": 7
+      },
+      {
+        "name": "super_lower_16",
+        "file": "super_lower_16.png",
+        "row": 2,
+        "col": 0
+      },
+      {
+        "name": "super_lower_17",
+        "file": "super_lower_17.png",
+        "row": 2,
+        "col": 1
+      },
+      {
+        "name": "super_lower_18",
+        "file": "super_lower_18.png",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "name": "super_lower_19",
+        "file": "super_lower_19.png",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "name": "super_lower_20",
+        "file": "super_lower_20.png",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "name": "super_lower_21",
+        "file": "super_lower_21.png",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "name": "super_lower_22",
+        "file": "super_lower_22.png",
+        "row": 2,
+        "col": 6
+      },
+      {
+        "name": "super_lower_23",
+        "file": "super_lower_23.png",
+        "row": 2,
+        "col": 7
+      },
+      {
+        "name": "super_lower_24",
+        "file": "super_lower_24.png",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "name": "super_lower_25",
+        "file": "super_lower_25.png",
+        "row": 3,
+        "col": 1
+      },
+      {
+        "name": "super_lower_26",
+        "file": "super_lower_26.png",
+        "row": 3,
+        "col": 2
+      },
+      {
+        "name": "super_lower_27",
+        "file": "super_lower_27.png",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "name": "super_lower_28",
+        "file": "super_lower_28.png",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "name": "super_lower_29",
+        "file": "super_lower_29.png",
+        "row": 3,
+        "col": 5
+      },
+      {
+        "name": "super_lower_30",
+        "file": "super_lower_30.png",
+        "row": 3,
+        "col": 6
+      },
+      {
+        "name": "super_lower_31",
+        "file": "super_lower_31.png",
+        "row": 3,
+        "col": 7
+      },
+      {
+        "name": "super_lower_32",
+        "file": "super_lower_32.png",
+        "row": 4,
+        "col": 0
+      },
+      {
+        "name": "super_lower_33",
+        "file": "super_lower_33.png",
+        "row": 4,
+        "col": 1
+      },
+      {
+        "name": "super_lower_34",
+        "file": "super_lower_34.png",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "name": "super_lower_35",
+        "file": "super_lower_35.png",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "name": "super_lower_36",
+        "file": "super_lower_36.png",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "name": "super_lower_37",
+        "file": "super_lower_37.png",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "name": "super_lower_38",
+        "file": "super_lower_38.png",
+        "row": 4,
+        "col": 6
+      },
+      {
+        "name": "super_lower_39",
+        "file": "super_lower_39.png",
+        "row": 4,
+        "col": 7
+      },
+      {
+        "name": "super_lower_40",
+        "file": "super_lower_40.png",
+        "row": 5,
+        "col": 0
+      },
+      {
+        "name": "super_lower_41",
+        "file": "super_lower_41.png",
+        "row": 5,
+        "col": 1
+      },
+      {
+        "name": "super_lower_42",
+        "file": "super_lower_42.png",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "name": "super_lower_43",
+        "file": "super_lower_43.png",
+        "row": 5,
+        "col": 3
+      },
+      {
+        "name": "super_lower_44",
+        "file": "super_lower_44.png",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "name": "super_lower_45",
+        "file": "super_lower_45.png",
+        "row": 5,
+        "col": 5
+      },
+      {
+        "name": "super_lower_46",
+        "file": "super_lower_46.png",
+        "row": 5,
+        "col": 6
+      },
+      {
+        "name": "super_lower_47",
+        "file": "super_lower_47.png",
+        "row": 5,
+        "col": 7
+      },
+      {
+        "name": "super_lower_48",
+        "file": "super_lower_48.png",
+        "row": 6,
+        "col": 0
+      },
+      {
+        "name": "super_lower_49",
+        "file": "super_lower_49.png",
+        "row": 6,
+        "col": 1
+      },
+      {
+        "name": "super_lower_50",
+        "file": "super_lower_50.png",
+        "row": 6,
+        "col": 2
+      },
+      {
+        "name": "super_lower_51",
+        "file": "super_lower_51.png",
+        "row": 6,
+        "col": 3
+      },
+      {
+        "name": "super_lower_52",
+        "file": "super_lower_52.png",
+        "row": 6,
+        "col": 4
+      },
+      {
+        "name": "super_lower_53",
+        "file": "super_lower_53.png",
+        "row": 6,
+        "col": 5
+      },
+      {
+        "name": "super_lower_54",
+        "file": "super_lower_54.png",
+        "row": 6,
+        "col": 6
+      },
+      {
+        "name": "super_lower_55",
+        "file": "super_lower_55.png",
+        "row": 6,
+        "col": 7
+      },
+      {
+        "name": "super_lower_56",
+        "file": "super_lower_56.png",
+        "row": 7,
+        "col": 0
+      },
+      {
+        "name": "super_lower_57",
+        "file": "super_lower_57.png",
+        "row": 7,
+        "col": 1
+      },
+      {
+        "name": "super_lower_58",
+        "file": "super_lower_58.png",
+        "row": 7,
+        "col": 2
+      },
+      {
+        "name": "super_lower_59",
+        "file": "super_lower_59.png",
+        "row": 7,
+        "col": 3
+      },
+      {
+        "name": "super_lower_60",
+        "file": "super_lower_60.png",
+        "row": 7,
+        "col": 4
+      },
+      {
+        "name": "super_lower_61",
+        "file": "super_lower_61.png",
+        "row": 7,
+        "col": 5
+      },
+      {
+        "name": "super_lower_62",
+        "file": "super_lower_62.png",
+        "row": 7,
+        "col": 6
+      },
+      {
+        "name": "super_lower_63",
+        "file": "super_lower_63.png",
+        "row": 7,
+        "col": 7
+      }
+    ],
+    "upper": [
+      {
+        "name": "super_upper_00",
+        "file": "super_upper_00.png",
+        "row": 0,
+        "col": 0
+      },
+      {
+        "name": "super_upper_01",
+        "file": "super_upper_01.png",
+        "row": 0,
+        "col": 1
+      },
+      {
+        "name": "super_upper_02",
+        "file": "super_upper_02.png",
+        "row": 0,
+        "col": 2
+      },
+      {
+        "name": "super_upper_03",
+        "file": "super_upper_03.png",
+        "row": 0,
+        "col": 3
+      },
+      {
+        "name": "super_upper_04",
+        "file": "super_upper_04.png",
+        "row": 0,
+        "col": 4
+      },
+      {
+        "name": "super_upper_05",
+        "file": "super_upper_05.png",
+        "row": 0,
+        "col": 5
+      },
+      {
+        "name": "super_upper_06",
+        "file": "super_upper_06.png",
+        "row": 0,
+        "col": 6
+      },
+      {
+        "name": "super_upper_07",
+        "file": "super_upper_07.png",
+        "row": 0,
+        "col": 7
+      },
+      {
+        "name": "super_upper_08",
+        "file": "super_upper_08.png",
+        "row": 1,
+        "col": 0
+      },
+      {
+        "name": "super_upper_09",
+        "file": "super_upper_09.png",
+        "row": 1,
+        "col": 1
+      },
+      {
+        "name": "super_upper_10",
+        "file": "super_upper_10.png",
+        "row": 1,
+        "col": 2
+      },
+      {
+        "name": "super_upper_11",
+        "file": "super_upper_11.png",
+        "row": 1,
+        "col": 3
+      },
+      {
+        "name": "super_upper_12",
+        "file": "super_upper_12.png",
+        "row": 1,
+        "col": 4
+      },
+      {
+        "name": "super_upper_13",
+        "file": "super_upper_13.png",
+        "row": 1,
+        "col": 5
+      },
+      {
+        "name": "super_upper_14",
+        "file": "super_upper_14.png",
+        "row": 1,
+        "col": 6
+      },
+      {
+        "name": "super_upper_15",
+        "file": "super_upper_15.png",
+        "row": 1,
+        "col": 7
+      },
+      {
+        "name": "super_upper_16",
+        "file": "super_upper_16.png",
+        "row": 2,
+        "col": 0
+      },
+      {
+        "name": "super_upper_17",
+        "file": "super_upper_17.png",
+        "row": 2,
+        "col": 1
+      },
+      {
+        "name": "super_upper_18",
+        "file": "super_upper_18.png",
+        "row": 2,
+        "col": 2
+      },
+      {
+        "name": "super_upper_19",
+        "file": "super_upper_19.png",
+        "row": 2,
+        "col": 3
+      },
+      {
+        "name": "super_upper_20",
+        "file": "super_upper_20.png",
+        "row": 2,
+        "col": 4
+      },
+      {
+        "name": "super_upper_21",
+        "file": "super_upper_21.png",
+        "row": 2,
+        "col": 5
+      },
+      {
+        "name": "super_upper_22",
+        "file": "super_upper_22.png",
+        "row": 2,
+        "col": 6
+      },
+      {
+        "name": "super_upper_23",
+        "file": "super_upper_23.png",
+        "row": 2,
+        "col": 7
+      },
+      {
+        "name": "super_upper_24",
+        "file": "super_upper_24.png",
+        "row": 3,
+        "col": 0
+      },
+      {
+        "name": "super_upper_25",
+        "file": "super_upper_25.png",
+        "row": 3,
+        "col": 1
+      },
+      {
+        "name": "super_upper_26",
+        "file": "super_upper_26.png",
+        "row": 3,
+        "col": 2
+      },
+      {
+        "name": "super_upper_27",
+        "file": "super_upper_27.png",
+        "row": 3,
+        "col": 3
+      },
+      {
+        "name": "super_upper_28",
+        "file": "super_upper_28.png",
+        "row": 3,
+        "col": 4
+      },
+      {
+        "name": "super_upper_29",
+        "file": "super_upper_29.png",
+        "row": 3,
+        "col": 5
+      },
+      {
+        "name": "super_upper_30",
+        "file": "super_upper_30.png",
+        "row": 3,
+        "col": 6
+      },
+      {
+        "name": "super_upper_31",
+        "file": "super_upper_31.png",
+        "row": 3,
+        "col": 7
+      },
+      {
+        "name": "super_upper_32",
+        "file": "super_upper_32.png",
+        "row": 4,
+        "col": 0
+      },
+      {
+        "name": "super_upper_33",
+        "file": "super_upper_33.png",
+        "row": 4,
+        "col": 1
+      },
+      {
+        "name": "super_upper_34",
+        "file": "super_upper_34.png",
+        "row": 4,
+        "col": 2
+      },
+      {
+        "name": "super_upper_35",
+        "file": "super_upper_35.png",
+        "row": 4,
+        "col": 3
+      },
+      {
+        "name": "super_upper_36",
+        "file": "super_upper_36.png",
+        "row": 4,
+        "col": 4
+      },
+      {
+        "name": "super_upper_37",
+        "file": "super_upper_37.png",
+        "row": 4,
+        "col": 5
+      },
+      {
+        "name": "super_upper_38",
+        "file": "super_upper_38.png",
+        "row": 4,
+        "col": 6
+      },
+      {
+        "name": "super_upper_39",
+        "file": "super_upper_39.png",
+        "row": 4,
+        "col": 7
+      },
+      {
+        "name": "super_upper_40",
+        "file": "super_upper_40.png",
+        "row": 5,
+        "col": 0
+      },
+      {
+        "name": "super_upper_41",
+        "file": "super_upper_41.png",
+        "row": 5,
+        "col": 1
+      },
+      {
+        "name": "super_upper_42",
+        "file": "super_upper_42.png",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "name": "super_upper_43",
+        "file": "super_upper_43.png",
+        "row": 5,
+        "col": 3
+      },
+      {
+        "name": "super_upper_44",
+        "file": "super_upper_44.png",
+        "row": 5,
+        "col": 4
+      },
+      {
+        "name": "super_upper_45",
+        "file": "super_upper_45.png",
+        "row": 5,
+        "col": 5
+      },
+      {
+        "name": "super_upper_46",
+        "file": "super_upper_46.png",
+        "row": 5,
+        "col": 6
+      },
+      {
+        "name": "super_upper_47",
+        "file": "super_upper_47.png",
+        "row": 5,
+        "col": 7
+      },
+      {
+        "name": "super_upper_48",
+        "file": "super_upper_48.png",
+        "row": 6,
+        "col": 0
+      },
+      {
+        "name": "super_upper_49",
+        "file": "super_upper_49.png",
+        "row": 6,
+        "col": 1
+      },
+      {
+        "name": "super_upper_50",
+        "file": "super_upper_50.png",
+        "row": 6,
+        "col": 2
+      },
+      {
+        "name": "super_upper_51",
+        "file": "super_upper_51.png",
+        "row": 6,
+        "col": 3
+      },
+      {
+        "name": "super_upper_52",
+        "file": "super_upper_52.png",
+        "row": 6,
+        "col": 4
+      },
+      {
+        "name": "super_upper_53",
+        "file": "super_upper_53.png",
+        "row": 6,
+        "col": 5
+      },
+      {
+        "name": "super_upper_54",
+        "file": "super_upper_54.png",
+        "row": 6,
+        "col": 6
+      },
+      {
+        "name": "super_upper_55",
+        "file": "super_upper_55.png",
+        "row": 6,
+        "col": 7
+      },
+      {
+        "name": "super_upper_56",
+        "file": "super_upper_56.png",
+        "row": 7,
+        "col": 0
+      },
+      {
+        "name": "super_upper_57",
+        "file": "super_upper_57.png",
+        "row": 7,
+        "col": 1
+      },
+      {
+        "name": "super_upper_58",
+        "file": "super_upper_58.png",
+        "row": 7,
+        "col": 2
+      },
+      {
+        "name": "super_upper_59",
+        "file": "super_upper_59.png",
+        "row": 7,
+        "col": 3
+      },
+      {
+        "name": "super_upper_60",
+        "file": "super_upper_60.png",
+        "row": 7,
+        "col": 4
+      },
+      {
+        "name": "super_upper_61",
+        "file": "super_upper_61.png",
+        "row": 7,
+        "col": 5
+      },
+      {
+        "name": "super_upper_62",
+        "file": "super_upper_62.png",
+        "row": 7,
+        "col": 6
+      },
+      {
+        "name": "super_upper_63",
+        "file": "super_upper_63.png",
+        "row": 7,
+        "col": 7
+      }
+    ]
+  }
+}
