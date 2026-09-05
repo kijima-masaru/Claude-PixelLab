@@ -3,7 +3,7 @@
   "name": "tile_linoleum_wood",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_linoleum_wood --lower concrete --lower-range 0.1,0.6 --lower-pattern noise --upper warm --upper-range 0,1 --upper-pattern waves --out _work/tile_linoleum_wood --seed 91 --upper-depth 0.16 --upper-bias 0.42 --pitch 8",
+    "command": "tools/tile_procedural.py --project iwato --name tile_linoleum_wood --lower concrete --lower-range 0.1,0.6 --lower-pattern noise --upper warm --upper-range 0,1 --upper-pattern planks --out _work/tile_linoleum_wood --seed 91 --upper-depth 0.16 --upper-bias 0.42 --pitch 8",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
@@ -15,9 +15,9 @@
       "colours": 6
     },
     "upper": {
-      "roughness": 3.8475434529320665,
-      "grain_ratio": 0.24362144179363374,
-      "grid_visibility": 0.214816210836834,
+      "roughness": 3.501911153549374,
+      "grain_ratio": 0.43983481359718984,
+      "grid_visibility": 0.3491154352253048,
       "hue_spread": 4.772727272727252,
       "colours": 3
     }

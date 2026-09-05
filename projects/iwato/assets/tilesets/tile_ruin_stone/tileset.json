@@ -3,7 +3,7 @@
   "name": "tile_ruin_stone",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_ruin_stone --lower concrete --lower-range 0.05,0.5 --lower-pattern voronoi --upper green --upper-range 0,0.75 --upper-pattern noise --out _work/tile_ruin_stone --seed 77 --lower-depth 0.18 --lower-bias 0.60 --upper-bias 0.28 --cells 48",
+    "command": "tools/tile_procedural.py --project iwato --name tile_ruin_stone --lower concrete --lower-range 0.05,0.5 --lower-pattern voronoi --upper olive --upper-range 0,1 --upper-pattern noise --out _work/tile_ruin_stone --seed 77 --lower-depth 0.18 --lower-bias 0.60 --upper-bias 0.32 --cells 48",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
@@ -15,11 +15,11 @@
       "colours": 5
     },
     "upper": {
-      "roughness": 3.9483882388117175,
-      "grain_ratio": 0.31495476881621176,
-      "grid_visibility": 0.003611900181105441,
-      "hue_spread": 26.031746031746025,
-      "colours": 4
+      "roughness": 3.741595895061733,
+      "grain_ratio": 0.30798721784947636,
+      "grid_visibility": 0.0072121540382974365,
+      "hue_spread": 4.880382775119642,
+      "colours": 2
     }
   },
   "tile_size": {

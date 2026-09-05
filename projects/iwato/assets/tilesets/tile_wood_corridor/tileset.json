@@ -3,23 +3,23 @@
   "name": "tile_wood_corridor",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_wood_corridor --lower warm --lower-range 0,1 --lower-pattern waves --upper warm --upper-range 0,1 --upper-pattern waves --out _work/tile_wood_corridor --seed 98 --lower-depth 0.16 --lower-bias 0.40 --upper-depth 0.16 --upper-bias 0.54 --pitch 8",
+    "command": "seed 5",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 3.80231598765429,
-      "grain_ratio": 0.23269697105777218,
-      "grid_visibility": 0.2971412859617054,
+      "roughness": 3.8209145177469064,
+      "grain_ratio": 0.3795818315183214,
+      "grid_visibility": 0.318604393071958,
       "hue_spread": 4.772727272727252,
-      "colours": 3
+      "colours": 4
     },
     "upper": {
-      "roughness": 4.179806788194412,
-      "grain_ratio": 0.1972796348781438,
-      "grid_visibility": 0.2702193705640447,
-      "hue_spread": 2.028985507246375,
-      "colours": 3
+      "roughness": 3.7708549749228357,
+      "grain_ratio": 0.5012222519030424,
+      "grid_visibility": 0.22787277840501358,
+      "hue_spread": 6.195652173913061,
+      "colours": 4
     }
   },
   "tile_size": {

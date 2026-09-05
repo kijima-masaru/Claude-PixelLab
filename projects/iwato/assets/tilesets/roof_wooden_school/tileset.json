@@ -3,22 +3,22 @@
   "name": "roof_wooden_school",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name roof_wooden_school --lower warm --lower-range 0,1 --lower-pattern waves --upper warm --upper-range 0,1 --upper-pattern waves --out _work/roof_wooden_school --seed 133 --lower-depth 0.16 --lower-bias 0.38 --upper-depth 0.16 --upper-bias 0.50 --pitch 8",
+    "command": "tools/tile_procedural.py --project iwato --name roof_wooden_school --lower warm --lower-range 0,1 --lower-pattern planks --upper warm --upper-range 0,1 --upper-pattern planks --out _work/roof_wooden_school --seed 133 --lower-depth 0.16 --lower-bias 0.38 --upper-depth 0.16 --upper-bias 0.50 --pitch 8",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 4.061309432870342,
-      "grain_ratio": 0.1959552520135884,
-      "grid_visibility": 0.23947847529029387,
+      "roughness": 3.9294900713734515,
+      "grain_ratio": 0.39105807990007757,
+      "grid_visibility": 0.3061984927082305,
       "hue_spread": 4.772727272727252,
-      "colours": 3
+      "colours": 4
     },
     "upper": {
-      "roughness": 3.8343247183641775,
-      "grain_ratio": 0.19473906715901396,
-      "grid_visibility": 0.21052475972448742,
-      "hue_spread": 6.195652173913061,
+      "roughness": 3.6744955362654284,
+      "grain_ratio": 0.5678434683107748,
+      "grid_visibility": 0.24926780841818125,
+      "hue_spread": 4.772727272727252,
       "colours": 4
     }
   },

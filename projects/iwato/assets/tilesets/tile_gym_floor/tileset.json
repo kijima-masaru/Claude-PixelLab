@@ -3,23 +3,23 @@
   "name": "tile_gym_floor",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_gym_floor --lower warm --lower-range 0,1 --lower-pattern waves --upper warm --upper-range 0,1 --upper-pattern waves --out _work/tile_gym_floor --seed 112 --lower-depth 0.14 --lower-bias 0.46 --upper-depth 0.14 --upper-bias 0.58 --pitch 8",
+    "command": "python tools/tile_procedural.py --project iwato --name tile_gym_floor --lower warm --lower-pattern planks --lower-depth 0.16 --lower-bias 0.42 --upper warm --upper-pattern planks --upper-depth 0.16 --upper-bias 0.56 --pitch 12 --out _work/tile_gym_floor --seed 5",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 4.493658684413546,
-      "grain_ratio": 0.12046983769948227,
-      "grid_visibility": 0.2548345689459,
+      "roughness": 3.7363904359567846,
+      "grain_ratio": 0.41175081400490415,
+      "grid_visibility": 0.2801716946174274,
       "hue_spread": 4.772727272727252,
-      "colours": 3
+      "colours": 4
     },
     "upper": {
-      "roughness": 4.624270324074039,
-      "grain_ratio": 0.18932036445033773,
-      "grid_visibility": 0.2684854527040576,
-      "hue_spread": 2.028985507246375,
-      "colours": 3
+      "roughness": 3.531499687499996,
+      "grain_ratio": 0.5704070189456946,
+      "grid_visibility": 0.2095943909471854,
+      "hue_spread": 6.195652173913061,
+      "colours": 4
     }
   },
   "tile_size": {
