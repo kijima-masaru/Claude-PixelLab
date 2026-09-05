@@ -3,21 +3,21 @@
   "name": "tile_gravel_grass",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_gravel_grass --lower concrete --lower-range 0.2,1 --lower-pattern voronoi --upper olive --upper-range 0,1 --upper-pattern noise --out _work/tile_gravel_grass --seed 7 --lower-depth 0.16 --cells 160",
+    "command": "tools/tile_procedural.py --project iwato --name tile_gravel_grass --lower concrete --lower-range 0.05,0.5 --lower-pattern voronoi --upper olive --upper-range 0,1 --upper-pattern noise --out _work/tile_gravel_grass --seed 7 --lower-depth 0.16 --lower-bias 0.62 --cells 160",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 3.8087907638888887,
-      "grain_ratio": 0.3026449703109643,
-      "grid_visibility": 0.0358150092364979,
-      "hue_spread": 42.23684210526312,
-      "colours": 4
+      "roughness": 3.7270119193672944,
+      "grain_ratio": 0.2837558917783665,
+      "grid_visibility": 0.010082706597261303,
+      "hue_spread": 15.0,
+      "colours": 5
     },
     "upper": {
       "roughness": 5.243308869598735,
       "grain_ratio": 0.28807620034433556,
-      "grid_visibility": 0.015764558032312432,
+      "grid_visibility": 0.006701230263496865,
       "hue_spread": 1.3090909090908553,
       "colours": 2
     }

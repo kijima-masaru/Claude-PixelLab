@@ -10,14 +10,14 @@
     "lower": {
       "roughness": 4.5056972415123555,
       "grain_ratio": 0.2904706072936833,
-      "grid_visibility": 0.0044427598348513115,
+      "grid_visibility": 0.0031771250484361555,
       "hue_spread": 0.6060606060605664,
       "colours": 2
     },
     "upper": {
       "roughness": 5.297611060956759,
       "grain_ratio": 0.296807922420393,
-      "grid_visibility": 0.015072243176401092,
+      "grid_visibility": 0.00745119004554153,
       "hue_spread": 1.3090909090908553,
       "colours": 2
     }

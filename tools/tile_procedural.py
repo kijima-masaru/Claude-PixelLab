@@ -56,7 +56,9 @@ FAMILIES = {
     "olive": (55, 95, 1.0, 0.08),
     "warm": (20, 50, 0.16, 0.06),
     "earth": (0, 45, 1.0, 0.18),
-    "green": (95, 180, 1.0, 0.18),
+    # 緑ランプは暗端が色相198度（青緑）まで振れる。窓を 95-180 に
+    # していたため**暗い緑が落ちて、鮮やかな明部しか残らなかった。**
+    "green": (95, 200, 1.0, 0.16),
     "indigo": (195, 250, 1.0, 0.20),
     "concrete": (195, 250, 0.22, 0.0),
 }
@@ -79,6 +81,11 @@ def family(palette: list, name: str) -> list:
     return sorted(picked, key=lambda c: _hls(c)[1])
 
 
+#: 主系統に必要な最小の段数。これを割ると段差が大きくなり、
+#: ざらつきが目標帯を超える（warm 4段で 7.18、6段で 4.72。実測）。
+MIN_RAMP_STEPS = 6
+
+
 def sub_ramp(ramp: list, lo: float, hi: float) -> list:
     """ランプの一部だけを取り出す。0.0〜1.0 の割合で指定する。
 
@@ -89,7 +96,7 @@ def sub_ramp(ramp: list, lo: float, hi: float) -> list:
     n = len(ramp)
     start, end = int(lo * n), max(int(hi * n), int(lo * n) + 1)
     picked = ramp[start:end]
-    while len(picked) < min(6, n):
+    while len(picked) < min(MIN_RAMP_STEPS, n):
         if end < n:
             end += 1
         elif start > 0:
@@ -197,7 +204,9 @@ def _map_to_ramp(base, mark, pattern, depth, ramp, size, contrast, bias):
             value = (base[y][x] - 0.5) * contrast + bias
             if mark is not None:
                 m = mark[y][x]
-                value += (m - 0.5) * 2 * depth if pattern == "waves" else (depth if m else -depth * 0.15)
+                # **目地は暗い。** 明るく描くと「線」として主張しすぎる。
+                value += ((m - 0.5) * 2 * depth if pattern == "waves"
+                          else (-depth if m else depth * 0.15))
             px[x, y] = ramp[max(0, min(steps - 1, int(value * steps)))]
     return image
 
@@ -271,6 +280,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lower-depth", type=float, default=None,
                         help="下の地形の模様の強さ。**強すぎるとざらつきが上振れする**。")
     parser.add_argument("--upper-depth", type=float, default=None, help="上の地形の模様の強さ。")
+    parser.add_argument("--lower-bias", type=float, default=None,
+                        help="下の地形の明るさ。**ランプのどのあたりを使うかを決める。** "
+                             "彩度の高い明部を避けたいときは下げる（緑・木部）。")
+    parser.add_argument("--upper-bias", type=float, default=None, help="上の地形の明るさ。")
     parser.add_argument("--auto-contrast", action="store_true", default=True,
                         help="ざらつきが目標帯（3.5〜6.0）に入るコントラストを自動で探す（既定: 有効）。")
     parser.add_argument("--no-auto-contrast", dest="auto_contrast", action="store_false")
@@ -308,23 +321,25 @@ def main(argv=None) -> int:
 
     ct_lower = args.contrast_lower if args.contrast_lower is not None else args.contrast
     ct_upper = args.contrast_upper if args.contrast_upper is not None else args.contrast
+    bias_lower = args.lower_bias if args.lower_bias is not None else args.bias
+    bias_upper = args.upper_bias if args.upper_bias is not None else args.bias
     if args.auto_contrast:
         ct_lower, lower_field, rl = auto_contrast(
             lower_ramp, args.size, args.seed + 11, args.lower_pattern, args.octaves,
-            args.base_cells, args.bias, args.gain, args.pitch, args.cells,
+            args.base_cells, bias_lower, args.gain, args.pitch, args.cells,
             args.lower_depth, palette)
         ct_upper, upper_field, ru = auto_contrast(
             upper_ramp, args.size, args.seed + 23, args.upper_pattern, args.octaves,
-            args.base_cells, args.bias, args.gain, args.pitch, args.cells,
+            args.base_cells, bias_upper, args.gain, args.pitch, args.cells,
             args.upper_depth, palette)
         print("コントラスト自動: lower %.2f（ざらつき%.2f） / upper %.2f（ざらつき%.2f）"
               % (ct_lower, rl, ct_upper, ru))
     else:
         lower_field = snap(render_pattern(lower_ramp, args.size, args.seed + 11, args.lower_pattern,
-                                          ct_lower, args.octaves, args.base_cells, args.bias,
+                                          ct_lower, args.octaves, args.base_cells, bias_lower,
                                           args.gain, args.pitch, args.cells, args.lower_depth), palette)
         upper_field = snap(render_pattern(upper_ramp, args.size, args.seed + 23, args.upper_pattern,
-                                          ct_upper, args.octaves, args.base_cells, args.bias,
+                                          ct_upper, args.octaves, args.base_cells, bias_upper,
                                           args.gain, args.pitch, args.cells, args.upper_depth), palette)
     lower_tiles = slice_tiles(lower_field)
     upper_tiles = slice_tiles(upper_field)

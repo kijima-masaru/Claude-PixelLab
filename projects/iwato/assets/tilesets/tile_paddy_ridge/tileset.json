@@ -3,21 +3,21 @@
   "name": "tile_paddy_ridge",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_paddy_ridge --lower indigo --lower-range 0,0.6 --lower-pattern noise --upper warm --upper-range 0,1 --upper-pattern noise --out _work/tile_paddy_ridge --seed 63",
+    "command": "tools/tile_procedural.py --project iwato --name tile_paddy_ridge --lower indigo --lower-range 0.25,0.8 --lower-pattern noise --upper warm --upper-range 0,1 --upper-pattern noise --out _work/tile_paddy_ridge --seed 63",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 3.5435110474537024,
-      "grain_ratio": 0.3152560550933552,
-      "grid_visibility": 0.01346725226508482,
-      "hue_spread": 37.85714285714289,
-      "colours": 7
+      "roughness": 5.429651861496918,
+      "grain_ratio": 0.30742302891764256,
+      "grid_visibility": 0.0032762683473166933,
+      "hue_spread": 17.51196172248808,
+      "colours": 2
     },
     "upper": {
       "roughness": 4.478066550925936,
       "grain_ratio": 0.288872799550286,
-      "grid_visibility": 0.019728034221146298,
+      "grid_visibility": 0.00904688107167802,
       "hue_spread": 0.6060606060605664,
       "colours": 2
     }

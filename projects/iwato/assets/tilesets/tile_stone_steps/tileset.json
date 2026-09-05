@@ -3,23 +3,23 @@
   "name": "tile_stone_steps",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_stone_steps --lower concrete --lower-range 0.2,0.8 --lower-pattern voronoi --upper concrete --upper-range 0,1 --upper-pattern grid --out _work/tile_stone_steps --seed 35 --lower-depth 0.18 --upper-depth 0.09 --cells 36 --pitch 16",
+    "command": "tools/tile_procedural.py --project iwato --name tile_stone_steps --lower concrete --lower-range 0.05,0.5 --lower-pattern voronoi --upper concrete --upper-range 0.1,0.6 --upper-pattern grid --out _work/tile_stone_steps --seed 35 --lower-depth 0.18 --lower-bias 0.60 --upper-depth 0.09 --cells 36 --pitch 16",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 3.552396834490746,
-      "grain_ratio": 0.42262997009342496,
-      "grid_visibility": 0.02644766750025456,
-      "hue_spread": 0.0,
-      "colours": 4
+      "roughness": 3.666346278935205,
+      "grain_ratio": 0.3588155367492263,
+      "grid_visibility": 0.004957003637786001,
+      "hue_spread": 13.42105263157896,
+      "colours": 5
     },
     "upper": {
-      "roughness": 5.240254336419733,
-      "grain_ratio": 0.0691742841376663,
-      "grid_visibility": 0.13383954648507684,
-      "hue_spread": 3.6000000000000227,
-      "colours": 4
+      "roughness": 3.5617558757716115,
+      "grain_ratio": 0.2893439216081415,
+      "grid_visibility": 0.009938653853412922,
+      "hue_spread": 10.0,
+      "colours": 6
     }
   },
   "tile_size": {

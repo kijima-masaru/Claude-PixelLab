@@ -3,22 +3,22 @@
   "name": "tile_embankment",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_embankment --lower green --lower-range 0,1 --lower-pattern noise --upper concrete --upper-range 0,1 --upper-pattern grid --out _work/tile_embankment --seed 56 --upper-depth 0.09 --pitch 16",
+    "command": "tools/tile_procedural.py --project iwato --name tile_embankment --lower olive --lower-range 0,1 --lower-pattern noise --upper concrete --upper-range 0.05,0.55 --upper-pattern grid --out _work/tile_embankment --seed 56 --lower-bias 0.40 --upper-depth 0.09 --upper-bias 0.55 --pitch 16",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 4.821608261959883,
-      "grain_ratio": 0.33259700531315406,
-      "grid_visibility": 0.0172066214504397,
-      "hue_spread": 12.920930232558192,
-      "colours": 2
+      "roughness": 3.51180027970679,
+      "grain_ratio": 0.31737076063675207,
+      "grid_visibility": 0.00531195155536341,
+      "hue_spread": 6.189473684210498,
+      "colours": 3
     },
     "upper": {
-      "roughness": 5.1538039872685,
-      "grain_ratio": 0.0692630453423919,
-      "grid_visibility": 0.15786751240257943,
-      "hue_spread": 3.6000000000000227,
+      "roughness": 3.7844593672839397,
+      "grain_ratio": 0.18518430108430375,
+      "grid_visibility": 0.016158421273581386,
+      "hue_spread": 10.0,
       "colours": 4
     }
   },

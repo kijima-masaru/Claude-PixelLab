@@ -3,22 +3,22 @@
   "name": "tile_river_gravel",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_river_gravel --lower indigo --lower-range 0,0.7 --lower-pattern noise --upper concrete --upper-range 0.2,1 --upper-pattern voronoi --out _work/tile_river_gravel --seed 70 --upper-depth 0.16 --cells 200",
+    "command": "tools/tile_procedural.py --project iwato --name tile_river_gravel --lower indigo --lower-range 0.25,0.8 --lower-pattern noise --upper concrete --upper-range 0.05,0.5 --upper-pattern voronoi --out _work/tile_river_gravel --seed 70 --upper-depth 0.16 --upper-bias 0.60 --cells 200",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 3.646559133873455,
-      "grain_ratio": 0.29810741427846427,
-      "grid_visibility": 0.013621463103516265,
-      "hue_spread": 34.285714285714334,
-      "colours": 8
+      "roughness": 5.556499980709879,
+      "grain_ratio": 0.27866874434516786,
+      "grid_visibility": 0.009620505764025379,
+      "hue_spread": 17.51196172248808,
+      "colours": 2
     },
     "upper": {
-      "roughness": 3.9195423996913585,
-      "grain_ratio": 0.24786865786018697,
-      "grid_visibility": 0.08060605559959881,
-      "hue_spread": 42.23684210526312,
+      "roughness": 3.6540233892747036,
+      "grain_ratio": 0.24933742516893326,
+      "grid_visibility": 0.014987639599929603,
+      "hue_spread": 13.42105263157896,
       "colours": 4
     }
   },

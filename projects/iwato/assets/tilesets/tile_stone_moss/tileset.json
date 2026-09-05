@@ -3,23 +3,23 @@
   "name": "tile_stone_moss",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_stone_moss --lower concrete --lower-range 0.2,0.8 --lower-pattern voronoi --upper green --upper-range 0,0.6 --upper-pattern noise --out _work/tile_stone_moss --seed 84 --lower-depth 0.18 --cells 36",
+    "command": "tools/tile_procedural.py --project iwato --name tile_stone_moss --lower concrete --lower-range 0.05,0.5 --lower-pattern voronoi --upper green --upper-range 0,0.75 --upper-pattern noise --out _work/tile_stone_moss --seed 84 --lower-depth 0.18 --lower-bias 0.60 --upper-bias 0.28 --cells 36",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 3.5433284915123506,
-      "grain_ratio": 0.42296668536075527,
-      "grid_visibility": 0.027377907367251438,
-      "hue_spread": 0.0,
-      "colours": 4
+      "roughness": 3.693214664351872,
+      "grain_ratio": 0.3514895346133787,
+      "grid_visibility": 0.006280153318088779,
+      "hue_spread": 13.42105263157896,
+      "colours": 6
     },
     "upper": {
-      "roughness": 4.93930606481482,
-      "grain_ratio": 0.3113270672450105,
-      "grid_visibility": 0.01590879031893102,
-      "hue_spread": 12.920930232558192,
-      "colours": 2
+      "roughness": 4.020721956018507,
+      "grain_ratio": 0.3167781450271188,
+      "grid_visibility": 0.007430365784964208,
+      "hue_spread": 26.031746031746025,
+      "colours": 4
     }
   },
   "tile_size": {

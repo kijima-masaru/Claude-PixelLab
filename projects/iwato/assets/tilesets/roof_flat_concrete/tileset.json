@@ -3,22 +3,22 @@
   "name": "roof_flat_concrete",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name roof_flat_concrete --lower concrete --lower-range 0,1 --lower-pattern noise --upper concrete --upper-range 0.3,1 --upper-pattern noise --out _work/roof_flat_concrete --seed 126",
+    "command": "tools/tile_procedural.py --project iwato --name roof_flat_concrete --lower concrete --lower-range 0.05,0.55 --lower-pattern noise --upper concrete --upper-range 0.15,0.65 --upper-pattern noise --out _work/roof_flat_concrete --seed 126",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 4.444412856867284,
-      "grain_ratio": 0.3123432655182396,
-      "grid_visibility": 0.014848952983977018,
-      "hue_spread": 3.6000000000000227,
-      "colours": 5
+      "roughness": 3.909031402391951,
+      "grain_ratio": 0.28897862746597197,
+      "grid_visibility": 0.006987320062120966,
+      "hue_spread": 8.42105263157896,
+      "colours": 2
     },
     "upper": {
-      "roughness": 4.044280135030877,
-      "grain_ratio": 0.3360905831118998,
-      "grid_visibility": 0.02400941405486082,
-      "hue_spread": 1.1368421052630993,
+      "roughness": 3.938730516975321,
+      "grain_ratio": 0.3275252847176471,
+      "grid_visibility": 0.007578764758040315,
+      "hue_spread": 10.0,
       "colours": 5
     }
   },

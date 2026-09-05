@@ -3,23 +3,23 @@
   "name": "roof_shrine",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name roof_shrine --lower concrete --lower-range 0.2,0.8 --lower-pattern grid --upper concrete --upper-range 0.3,1 --upper-pattern grid --out _work/roof_shrine --seed 140 --lower-depth 0.14 --contrast-lower 0.55 --upper-depth 0.14 --contrast-upper 0.45 --pitch 16",
+    "command": "tools/tile_procedural.py --project iwato --name roof_shrine --lower concrete --lower-range 0.05,0.5 --lower-pattern grid --upper concrete --upper-range 0.1,0.55 --upper-pattern grid --out _work/roof_shrine --seed 140 --lower-depth 0.10 --upper-depth 0.10 --pitch 16",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 4.7532539139660175,
-      "grain_ratio": 0.09067111707372266,
-      "grid_visibility": 0.2354881682514416,
-      "hue_spread": 0.0,
-      "colours": 4
+      "roughness": 3.751297434413585,
+      "grain_ratio": 0.24911337273013456,
+      "grid_visibility": 0.030187473060814197,
+      "hue_spread": 13.42105263157896,
+      "colours": 5
     },
     "upper": {
-      "roughness": 4.090689268904328,
-      "grain_ratio": 0.12554910397105726,
-      "grid_visibility": 0.11408679857868748,
-      "hue_spread": 42.23684210526312,
-      "colours": 5
+      "roughness": 3.7808191222993783,
+      "grain_ratio": 0.23516892045295357,
+      "grid_visibility": 0.037032943539707444,
+      "hue_spread": 10.0,
+      "colours": 6
     }
   },
   "tile_size": {

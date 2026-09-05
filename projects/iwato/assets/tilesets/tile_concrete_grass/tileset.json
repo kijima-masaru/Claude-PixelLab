@@ -3,21 +3,21 @@
   "name": "tile_concrete_grass",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_concrete_grass --lower concrete --lower-range 0,1 --lower-pattern noise --upper olive --upper-range 0,1 --upper-pattern noise --out _work/tile_concrete_grass --seed 0",
+    "command": "tools/tile_procedural.py --project iwato --name tile_concrete_grass --lower concrete --lower-range 0.05,0.55 --lower-pattern noise --upper olive --upper-range 0,1 --upper-pattern noise --out _work/tile_concrete_grass --seed 0",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 4.673530200617284,
-      "grain_ratio": 0.31840870018255557,
-      "grid_visibility": 0.00977039079932878,
-      "hue_spread": 3.6000000000000227,
-      "colours": 5
+      "roughness": 3.8409163850308405,
+      "grain_ratio": 0.29534426736517744,
+      "grid_visibility": 0.005634082555121524,
+      "hue_spread": 8.42105263157896,
+      "colours": 2
     },
     "upper": {
       "roughness": 5.286083221450586,
       "grain_ratio": 0.28452286306339875,
-      "grid_visibility": 0.00046806975687588715,
+      "grid_visibility": 0.005642545234819472,
       "hue_spread": 1.3090909090908553,
       "colours": 2
     }
