@@ -247,3 +247,58 @@ def neutrals(palette: list, max_s: float = 0.13) -> list:
         if s <= max_s:
             picked.append((l, colour))
     return [c for _, c in sorted(picked)]
+
+
+# ---------------------------------------------------------------------------
+# 反復の目立ちやすさ
+# ---------------------------------------------------------------------------
+
+def _luma(image):
+    px = image.convert("RGB").load()
+    w, h = image.size
+    return [[0.299 * px[x, y][0] + 0.587 * px[x, y][1] + 0.114 * px[x, y][2]
+             for x in range(w)] for y in range(h)]
+
+
+def _corr_at(grid, dx, dy):
+    """ずらし量 (dx, dy) での正規化自己相関。トーラスではなく重なりで測る。"""
+    h, w = len(grid), len(grid[0])
+    mean = sum(sum(r) for r in grid) / (w * h)
+    num = da = db = 0.0
+    for y in range(h - dy):
+        for x in range(w - dx):
+            a = grid[y][x] - mean
+            b = grid[y + dy][x + dx] - mean
+            num += a * b
+            da += a * a
+            db += b * b
+    return num / (da * db) ** 0.5 if da and db else 0.0
+
+
+def grid_visibility(image, tile: int = 32, period: int = 8) -> float:
+    """**32px のタイル格子が、どれだけ目立つか。** 0〜1。低いほどよい。
+
+    従来の `periodicity()` は「1枚のタイルを自分自身で反復したときの
+    目立ちやすさ」を測るものだった。**手続き的生成には当てはまらない。**
+    256px のトーラス面から 8x8=64 枚を切り出すため、反復の周期は
+    32px ではなく **8タイル**である。32px の切片を測っても、
+    実際の見え方と対応しない。
+
+    ここでは**敷き詰めた面**を入力に取り、タイル幅の整数倍だけずらした
+    ときの自己相関を見る。**ただし周期そのもの（8タイル）は除く。**
+    そこが一致するのは設計どおりであって、欠陥ではない。
+
+    | 値 | 意味 |
+    | --- | --- |
+    | 0.9 以上 | 1枚のタイルが反復している。**壁紙** |
+    | 0.5〜0.9 | 格子が読める |
+    | **0.35 未満** | **格子が見えない**（目視と一致することを確認済み） |
+    """
+    grid = _luma(image)
+    best = 0.0
+    for k in range(1, period):
+        for dx, dy in ((k * tile, 0), (0, k * tile)):
+            if dx >= image.size[0] - tile or dy >= image.size[1] - tile:
+                continue
+            best = max(best, _corr_at(grid, dx, dy))
+    return best
