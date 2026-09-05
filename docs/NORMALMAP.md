@@ -31,6 +31,20 @@ python tools/normalmap.py --project iwato --category tilesets
 python tools/normalmap.py --project iwato --category tilesets --no-flip-y
 ```
 
+## ⚠️ 立ち物には `shape_normalmap.py` を使う
+
+**輝度から起こしてよいのは地面だけである。**
+立ち物に描き込まれた陰影は「絵」であって凹凸ではない（PILOT_FINDINGS 第27節）。
+
+```bash
+python tools/normalmap.py --project iwato --category tilesets      # 地面 → _n.png
+python tools/shape_normalmap.py --project iwato --category objects # 立ち物 → _s.png
+```
+
+**接尾辞が違う。** `_n` は輝度から、`_s` は形（シルエット）から起こしたもの。
+
+---
+
 ## ⚠️ 同じく最重要 — ライトに `height` を与えないと法線は効かない
 
 `PointLight2D.height` の既定値は `0.0` である。これは
