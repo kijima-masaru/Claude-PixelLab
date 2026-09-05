@@ -3,7 +3,7 @@
   "name": "tile_forest_floor",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_forest_floor --lower warm --lower-range 0,0.7 --lower-pattern strokes --upper green --upper-range 0,0.75 --upper-pattern strokes --out _work/tile_forest_floor --seed 14 --lower-depth 0.14 --lower-bias 0.42 --upper-depth 0.10 --upper-bias 0.34",
+    "command": "tools/tile_procedural.py --project iwato --name tile_forest_floor --lower warm --lower-range 0,0.7 --lower-pattern strokes --upper green --upper-range 0,0.75 --upper-pattern strokes --out _work/tile_forest_floor --seed 14 --lower-depth 0.14 --lower-bias 0.42 --upper-depth 0.10 --upper-bias 0.26",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
@@ -15,10 +15,10 @@
       "colours": 4
     },
     "upper": {
-      "roughness": 4.490400308641952,
-      "grain_ratio": 0.16656638720946568,
-      "grid_visibility": 0.010322881943593688,
-      "hue_spread": 14.888888888888914,
+      "roughness": 4.126862268518524,
+      "grain_ratio": 0.25670470539113893,
+      "grid_visibility": 0.006920189410401522,
+      "hue_spread": 26.031746031746025,
       "colours": 3
     }
   },

@@ -3,21 +3,21 @@
   "name": "tile_tatami_wood",
   "note": "",
   "source": {
-    "command": "tools/tile_procedural.py --project iwato --name tile_tatami_wood --lower olive --lower-range 0,1 --lower-pattern grid --upper warm --upper-range 0,1 --upper-pattern waves --out _work/tile_tatami_wood --seed 105 --lower-depth 0.03 --upper-depth 0.16 --upper-bias 0.42 --pitch 8",
+    "command": "seed 5",
     "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
     "lower": {
-      "roughness": 5.860727943672797,
-      "grain_ratio": 0.2354271015262144,
-      "grid_visibility": 0.02498239955862693,
+      "roughness": 5.9603859915123,
+      "grain_ratio": 0.22095371517047366,
+      "grid_visibility": 0.02950453611319799,
       "hue_spread": 1.3090909090908553,
-      "colours": 3
+      "colours": 2
     },
     "upper": {
-      "roughness": 3.873036138117251,
-      "grain_ratio": 0.2462802784052302,
-      "grid_visibility": 0.27097726479878215,
+      "roughness": 3.6919556365740673,
+      "grain_ratio": 0.3737181332236842,
+      "grid_visibility": 0.3493288291563161,
       "hue_spread": 4.772727272727252,
       "colours": 3
     }

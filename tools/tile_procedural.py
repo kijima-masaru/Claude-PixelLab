@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import base64
 import math
+import random
 import colorsys
 import io
 import json
@@ -167,6 +168,45 @@ def _pattern_mark(size: int, seed: int, pattern: str, pitch: int, cells: int):
         drift = procgen.value_noise(size, 4, seed + 71)
         return [[(math.sin((x / size * count + (drift[y][x] - 0.5) * 0.35) * 2 * math.pi) + 1) / 2
                  for x in range(size)] for y in range(size)], 0.36
+    if pattern == "planks":
+        # ★ 板張り。**縞を揃えないことが本質である。**
+        #
+        # 単純な正弦波で描くと、幅8px の板が全面で完全に揃い、
+        # 床ではなく簀の子に見えた。現実の板張りは、板ごとに
+        # 色味と摩耗が違い、継ぎ目の位置も列ごとにずれている。
+        #
+        #   1. 板ごとに明度を変える（同じランプ内の隣接段の範囲で）
+        #   2. 板の継ぎ目（木口）の位置を列ごとにずらす
+        #   3. 節を疎らに入れる
+        #
+        # 板の本数は waves と同じ理由で、32px ずらしの位相が
+        # 半周期になる値に合わせる。
+        tiles_per_side = max(1, size // 32)
+        boards = max(2, round(size / pitch))
+        while boards % tiles_per_side != tiles_per_side // 2:
+            boards += 1
+        rng = random.Random(seed + 131)
+        tone = [rng.uniform(-1.0, 1.0) for _ in range(boards)]
+        end_at = [rng.randrange(size) for _ in range(boards)]   # 木口の位置
+        # 木目は**細かく**。粗いと染みのように見え、帯域比が上がる
+        grain = procgen.value_noise(size, 56, seed + 149)
+        knots = procgen.strokes(size, size * size // 900, seed + 163, length=2)
+        mark = [[0.0] * size for _ in range(size)]
+        for y in range(size):
+            for x in range(size):
+                pos = x / size * boards
+                board = int(pos) % boards
+                edge = pos - int(pos)
+                value = 0.5 + tone[board] * 0.38          # 板ごとの色味
+                value += (grain[y][x] - 0.5) * 0.30       # 木目
+                if edge < 0.10 or edge > 0.90:
+                    value -= 0.9                          # 板の継ぎ目
+                if abs((y - end_at[board]) % size) < 2:
+                    value -= 0.7                          # 木口
+                if knots[y][x]:
+                    value -= 0.8                          # 節
+                mark[y][x] = max(0.0, min(1.0, value))
+        return mark, 0.30
     if pattern == "voronoi":
         _, edge = procgen.voronoi(size, cells, seed=seed + 3, jitter=0.7)
         return [[0 if edge[y][x] < 1.6 else 1 for x in range(size)] for y in range(size)], 0.30
@@ -205,7 +245,7 @@ def _map_to_ramp(base, mark, pattern, depth, ramp, size, contrast, bias):
             if mark is not None:
                 m = mark[y][x]
                 # **目地は暗い。** 明るく描くと「線」として主張しすぎる。
-                value += ((m - 0.5) * 2 * depth if pattern == "waves"
+                value += ((m - 0.5) * 2 * depth if pattern in ("waves", "planks")
                           else (-depth if m else depth * 0.15))
             px[x, y] = ramp[max(0, min(steps - 1, int(value * steps)))]
     return image
@@ -270,10 +310,10 @@ def build_parser() -> argparse.ArgumentParser:
                         help="下の地形が使うランプの範囲（割合）。同系統の2素材を組むときに使う。")
     parser.add_argument("--upper-range", default="0,1", metavar="LO,HI")
     parser.add_argument("--lower-pattern", default="noise",
-                        choices=["noise", "grid", "waves", "voronoi", "strokes"],
+                        choices=["noise", "grid", "waves", "planks", "voronoi", "strokes"],
                         help="下の地形の模様。**規則的な素材では規則性が素材そのものである**。")
     parser.add_argument("--upper-pattern", default="noise",
-                        choices=["noise", "grid", "waves", "voronoi", "strokes"])
+                        choices=["noise", "grid", "waves", "planks", "voronoi", "strokes"])
     parser.add_argument("--pitch", type=int, default=16,
                         help="格子・波の周期（既定: 16）。**32を割り切る値にすること**。")
     parser.add_argument("--cells", type=int, default=64, help="ボロノイの区画数（既定: 64）。")
