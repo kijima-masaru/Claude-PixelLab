@@ -1,0 +1,31 @@
+; 素材の見え方を確かめるための最小プロジェクト。
+; **ゲーム本体ではない。** 納品済みの素材をそのまま読み、
+; 2Dライトとノーマルマップを乗せた状態を見るためだけのもの。
+config_version=5
+
+[application]
+config/name="iwato preview"
+run/main_scene="res://preview.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1920
+window/size/window_height_override=1080
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+
+[rendering]
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
+
+[importer_defaults]
+texture={
+"compress/mode": 0,
+"detect_3d/compress_to": 0,
+"mipmaps/generate": false,
+"process/fix_alpha_border": false
+}
