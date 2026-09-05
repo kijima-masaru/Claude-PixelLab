@@ -192,6 +192,14 @@ def verify(colours: list, spec: dict) -> tuple:
             "光源色が %d 色あります。上限は %d 色で、増やすには個別の承認が要ります。"
             % (len(lights), MAX_LIGHT_COLOURS))
 
+    # color_image の取りこぼし
+    #   **書き出した PNG に全色が入っているか。** 実装の都合（格子の枡目）が
+    #   仕様の上限になり、光源色12色が黙って落ちていたことがある。
+    for label, subset in (("全色", colours),
+                          ("地形用", [c for c in colours if c["ramp"] in TERRAIN_RAMPS])):
+        if len(subset) > 64 * 64:
+            problems.append("%s が color_image（64x64）に入りません: %d 色" % (label, len(subset)))
+
     # 地形用パレットの取りこぼし
     #   ランプを足して TERRAIN_RAMPS に足し忘れると、新色が
     #   color_image に載らないまま気づかれない。コードで見張る。
@@ -335,32 +343,34 @@ TERRAIN_RAMPS = ("ink", "concrete", "indigo", "violet", "green",
 
 
 def write_color_source(colours: list, path) -> None:
-    """color_image に渡すための、64色ちょうどの PNG を書き出す。
+    """color_image に渡すための PNG を書き出す。**全色を必ず含める。**
 
     PixelLab の color_image は「使う色を含んだ画像」を受け取り、
-    その色に寄せて生成する。**本作では negative プロンプトが使えないため、
-    これがパレット外の色（西洋ファンタジー的な配色）を排除する主手段になる。**
+    その色に寄せて生成する。negative プロンプトが使えない本作では、
+    これがパレット外の色を排除する主手段になる（PILOT_FINDINGS 第4節）。
 
-    1色1画素の 8x8 にする。余計な色が混ざらないよう補間は一切しない。
+    **以前は 8x8 の格子に 1色1ブロックで敷いていたため、64色までしか
+    入らなかった。** パレットを 76色へ広げたとき、**光源色12色が黙って
+    落ちていた**（生成される color_image が地の64色と完全に同一だった）。
+    格子の枡目という実装の都合が、仕様の上限になっていた。
+
+    いまは 1色1画素で並べ、余りは繰り返して 64x64 を埋める。
+    **色数がいくつでも全色が入る。** 64x64 という寸法は API の要求である
+    （8x8 で送ると "Expected image of size 64x64" で失敗する。実測）。
     """
     try:
         from PIL import Image
     except ImportError:
         return
-    # PixelLab は color_image に 64x64 を要求する（8x8 で送ると
-    # "Expected image of size 64x64" で生成が失敗する。実測で確認）。
-    # 1色を block x block の塊にして、64色を 64x64 に敷き詰める。
-    grid, block = 8, 8
-    side = grid * block
+    side = 64
     img = Image.new("RGB", (side, side), (0, 0, 0))
     px = img.load()
     pool = colours or []
-    for i in range(grid * grid):
-        c = pool[i % len(pool)]
-        gx, gy = (i % grid) * block, (i // grid) * block
-        for y in range(block):
-            for x in range(block):
-                px[gx + x, gy + y] = c["rgb"]
+    if not pool:
+        img.save(path)
+        return
+    for i in range(side * side):
+        px[i % side, i // side] = pool[i % len(pool)]["rgb"]
     img.save(path)
 
 
