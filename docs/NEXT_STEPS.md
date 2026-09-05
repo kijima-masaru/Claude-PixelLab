@@ -114,6 +114,32 @@ F06 パイロットで **10 generations** を使い、画風の可否を判断�
 作り方の全体像は
 [production_plan.yaml](../projects/iwato/requirements/production_plan.yaml) を参照。
 
+## 素材の現況（2026-09-05）
+
+| 種別 | 納品 | 手段 |
+| --- | ---: | --- |
+| タイルセット | **24本** | 手続き的生成（`tile_asphalt_curb` のみ自作画像から） |
+| deco | **11点** | 手続き的生成 |
+| オブジェクト | **62点** | PixelLab `/map-objects` |
+| **合計 PNG** | **3,414枚** | `validate_assets.py` 全合格 |
+
+### 残っている課題
+
+- **未納品5点** — `obj_bicycle` `obj_plum_tree_bare` `obj_school_desk`
+  `obj_electric_fan` `obj_rice_plant_cluster`。すべて「細い突起」の基準に
+  落ちた（第21節）。**基準の見直しか、手描きか、発注の分割で解く**
+- **屋内に壁が無い。** F11 の配置図で、黒板・靴箱・窓・扉を**床タイルの上に
+  置いている。** 壁は `tileset_extra` にも `overhead` にも無い。
+  **屋内フィールド（F11・F12・F13）の設計に穴がある**
+- **明るすぎる物がある。** `obj_kei_car`（白）と `obj_signboard_pole` の
+  白い面板が、褪せた画面から浮く。**基準は通っている**（明度が地面の帯の外）
+  が、目視では浮いて見える。**明度の上限という基準は無い**
+- **看板の文字**は模様として作った（`deco_signboard_text_h` / `_v`）。
+  物語上の意味を持つ看板だけ別解像度で作る枠を3〜5点確保してある
+- 高さのある単体物16点は**すべて PixelLab で作れた**。手描きは不要になった
+
+---
+
 ## オブジェクトの検証に入るときの論点
 
 タイルセットは手続き的生成で片付く見通しが立った（[`PILOT_FINDINGS.md`](PILOT_FINDINGS.md) 第13節）。
