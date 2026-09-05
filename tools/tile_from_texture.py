@@ -401,7 +401,7 @@ def build_parser() -> argparse.ArgumentParser:
                         metavar="X,Y,W,H", help="使う領域。複数指定できる（繋げて1枚の素材にする）。")
     parser.add_argument("--name", required=True, help="タイルセット名。")
     parser.add_argument("--out", required=True, metavar="PATH", help="出力先（プロジェクト相対）。")
-    parser.add_argument("--palette", default="palettes/iwato_64_colors_terrain.png",
+    parser.add_argument("--palette", default="palettes/iwato_colors_terrain.png",
                         help="吸着先パレット（既定: 地の52色）。")
     parser.add_argument("--tile-src-px", type=int, default=64,
                         help="1タイルが覆う元画素数（既定: 64）。大きいほど広い範囲が1タイルに入る。")

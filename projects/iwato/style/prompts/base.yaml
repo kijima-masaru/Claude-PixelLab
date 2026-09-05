@@ -50,7 +50,7 @@ style_controls:
   shading: basic shading       # 面の陰影はノーマルマップに任せる
   detail: low detail           # 余白と単調さが不安を作る
   text_guidance_scale: 9.5     # 既定8.0より上げ、記述への忠実度を高める
-  color_image: palettes/iwato_64_colors.png   # ★パレット強制。逸脱を抑える主手段
+  color_image: palettes/iwato_colors.png   # ★パレット強制。逸脱を抑える主手段
 
 # ---------------------------------------------------------------------
 # 共通プレフィックス
@@ -128,7 +128,7 @@ pilot:
       use_common_affix: false
       shading: flat shading
       detail: low detail
-      color_image: palettes/iwato_64_colors_terrain.png
+      color_image: palettes/iwato_colors_terrain.png
       params:
         tile_size: { width: 32, height: 32 }
         mode: standard
@@ -238,7 +238,7 @@ pilot:
         --name obj_vending_machine --description "<description>"
         --size 64 --view "high top-down"
         --outline lineless --shading "basic shading" --detail "medium detail"
-        --guidance 9.5 --color-image palettes/iwato_64_colors.png
+        --guidance 9.5 --color-image palettes/iwato_colors.png
         --seed 1003 --max-images 1 --max-cost 0.20
 
     # -----------------------------------------------------------------
@@ -271,7 +271,7 @@ pilot:
         --name obj_civic_facade --description "<description>"
         --size 128 --view "high top-down"
         --outline lineless --shading "basic shading" --detail "medium detail"
-        --guidance 9.5 --color-image palettes/iwato_64_colors.png
+        --guidance 9.5 --color-image palettes/iwato_colors.png
         --seed 1004 --max-images 1 --max-cost 0.20
 
     # 投影の検証（2026-09-04）。/map-objects は view: high top-down を送っても
@@ -344,7 +344,7 @@ pilot:
       use_common_affix: false
       shading: detailed shading      # ★ 6回目から変える唯一の変数
       detail: low detail             # 6回目のまま
-      color_image: palettes/iwato_64_colors_terrain.png
+      color_image: palettes/iwato_colors_terrain.png
       params:
         tile_size: { width: 32, height: 32 }
         mode: standard

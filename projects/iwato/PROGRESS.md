@@ -7,7 +7,7 @@
 
 | 項目 | 状態 |
 | --- | --- |
-| パレット確定 | **完了**（64色 / `palettes/iwato_64.gpl`） |
+| パレット確定 | **完了**（72色 / `palettes/iwato.gpl`） |
 | スタイルガイド | **完了**（`style/STYLE_GUIDE.md` / `style/prompts/base.yaml`） |
 | 素材要件の洗い出し | **完了**（`requirements/ASSETS_NEEDED.md` 485点） |
 | 生成 | F06 パイロット待ち（4点 / 承認後） |

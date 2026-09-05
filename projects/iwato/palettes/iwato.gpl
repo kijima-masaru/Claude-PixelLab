@@ -1,5 +1,5 @@
 GIMP Palette
-Name: iwato_64
+Name: iwato
 Columns: 8
 # 磐戸町奇譚 64色パレット
 # 生成: python tools/build_palette.py --project iwato
@@ -53,6 +53,14 @@ Columns: 8
 149 110  80	earth 土・錆・木7
 170 135  97	earth 土・錆・木8
 184 159 122	earth 土・錆・木9
+ 57  63  39	olive 枯れた草（オリーブ）1
+ 82  89  57	olive 枯れた草（オリーブ）2
+113 119  79	olive 枯れた草（オリーブ）3
+146 150 105	olive 枯れた草（オリーブ）4
+ 55  50  42	warm 暖かい中性（踏み固められた土）1
+ 79  71  61	warm 暖かい中性（踏み固められた土）2
+107  97  86	warm 暖かい中性（踏み固められた土）3
+137 125 112	warm 暖かい中性（踏み固められた土）4
 106  65  47	skin 肌1
 149 102  76	skin 肌2
 177 143 119	skin 肌3
