@@ -172,37 +172,71 @@ def ditch_cover(w, h, stone, seed):
 
 
 def foundation_stone(size, stone, seed):
-    """礎石。**不定形の石をボロノイの1区画として切り出す。**"""
+    """礎石。**角ばった多角形として置く。**
+
+    ボロノイの1区画をそのまま使うと小さく丸まり、**瓦礫に見えた。**
+    礎石は建物を支えていた石であり、大きく、面が平らで、角がある。
+    枡の8割を占める凸多角形として描き、縁だけを暗くする。
+    """
     img = canvas(size, size)
     px = img.load()
-    cell, edge = procgen.voronoi(size, 6, seed=seed, jitter=0.8)
-    target = cell[size // 2][size // 2]
-    noise = procgen.fbm(size, 3, seed=seed + 5, base_cells=8, gain=1.0)
+    rng = random.Random(seed)
+    cx = cy = (size - 1) / 2
+    corners = rng.randint(5, 7)
+    radii = [size * 0.40 * rng.uniform(0.82, 1.0) for _ in range(corners)]
+    angles = [i * 2 * math.pi / corners + rng.uniform(-0.18, 0.18) for i in range(corners)]
+    poly = [(cx + r * math.cos(a), cy + r * math.sin(a)) for r, a in zip(radii, angles)]
+
+    def inside(x, y):
+        sign = None
+        for i in range(len(poly)):
+            ax, ay = poly[i]
+            bx, by = poly[(i + 1) % len(poly)]
+            cross = (bx - ax) * (y - ay) - (by - ay) * (x - ax)
+            if cross == 0:
+                continue
+            if sign is None:
+                sign = cross > 0
+            elif (cross > 0) != sign:
+                return False
+        return True
+
+    noise = procgen.fbm(size, 3, seed=seed + 5, base_cells=10, gain=1.0)
     for y in range(size):
         for x in range(size):
-            if cell[y][x] != target:
+            if not inside(x + 0.5, y + 0.5):
                 continue
-            tone = 2 + int(noise[y][x] * 2.5)
-            if edge[y][x] < 2.0:
-                tone = 1                       # 石の縁は暗い
+            tone = 3 + int(noise[y][x] * 2.0)
+            if not (inside(x + 1.5, y + 0.5) and inside(x - 0.5, y + 0.5)
+                    and inside(x + 0.5, y + 1.5) and inside(x + 0.5, y - 0.5)):
+                tone = 1                       # 縁だけ暗く
             px[x, y] = stone[min(tone, len(stone) - 1)] + (255,)
     return img
 
 
 def irrigation_channel(w, h, stone, seed):
-    """用水路。**地面に彫られた溝であり、水は実行時のライトで見せる。**"""
+    """用水路。**溝の底が見えること。**
+
+    最初は中央を最暗色で塗ったため、溝ではなく**穴に見えた。**
+    底には泥か浅い水がある。真っ黒にせず、暗い面として描き、
+    片側の壁だけを一段明るくして深さを示す。
+    水面の照りは実行時のライトで作る（第5節）。
+    """
     img = canvas(w, h)
     px = img.load()
-    for y in range(h):
-        for x in range(w):
-            px[x, y] = stone[3] + (255,)
+    noise = procgen.fbm(max(w, h), 3, seed=seed + 3, base_cells=12, gain=1.0)
     inner = w // 4
     for y in range(h):
-        for x in range(inner, w - inner):
-            px[x, y] = stone[0] + (255,)
+        for x in range(w):
+            if x < inner or x >= w - inner:
+                px[x, y] = stone[4] + (255,)                 # コンクリートの縁
+            else:
+                tone = 1 + int(noise[y][x] * 1.6)            # 底の泥
+                px[x, y] = stone[min(tone, len(stone) - 1)] + (255,)
     for y in range(h):
-        px[inner - 1, y] = px[w - inner, y] = stone[1] + (255,)
-    wear(img, stone, seed, 0.20)
+        px[inner, y] = stone[3] + (255,)                     # 片側の壁が明るい
+        px[w - inner - 1, y] = stone[0] + (255,)             # 反対側は影
+    wear(img, stone, seed, 0.18)
     return img
 
 
@@ -213,7 +247,9 @@ def grass_edge(w, h, green, seed):
     rng = random.Random(seed)
     for x in range(w):
         height = rng.randint(h // 3, h - 2)
-        thickness = rng.choice((1, 2, 2, 3))
+        # **2px でも足りない。** 開き演算（収縮→膨張）は 2px 以下を消す。
+        # 草の葉は 32px では「株」として描く。1本ずつは描けない。
+        thickness = rng.choice((3, 3, 4))
         tone = green[rng.randrange(len(green))]
         for t in range(thickness):
             if x + t >= w:
@@ -228,38 +264,46 @@ def signboard_text(w, h, ink, seed, vertical=False):
 
     32px = 1m では、幅2mの看板は 64px しかない。漢字は 12〜16px になり
     まず読めない（docs/NEXT_STEPS.md）。**読ませることは諦め、
-    「文字が並んでいる」ことだけを示す。**
+    「文字が並んでいる」ことだけを示す。** 内容は近接時に UI で出す。
 
-    文字の内容は近接時に UI で出す。素材側は模様でよい。
-    横書き・縦書きの両方を作る。
+    最初の実装は線をばらまいただけで、**文字の配置に見えなかった。**
+    原因は枡目が無かったこと。**日本語の看板は、文字が等間隔の枡目に
+    整列している。** 枡を先に決め、その中に画を収める。
+
+    画は 2px 幅にする。1px では 32px で消える（基準6）。
     """
     img = canvas(w, h)
     px = img.load()
     rng = random.Random(seed)
-    box = min(w, h) - 4 if not vertical else min(w, h) - 4
-    step = box + 2
-    positions = range(2, (h if vertical else w) - box, step)
-    for start in positions:
-        # 1文字ぶんの枠の中に、画のような短い線を数本置く
-        strokes = rng.randint(3, 6)
-        for _ in range(strokes):
-            horizontal = rng.random() < 0.6
-            if vertical:
-                ox, oy = 2, start
-            else:
-                ox, oy = start, 2
-            if horizontal:
-                y = oy + rng.randrange(box)
-                x0 = ox + rng.randrange(max(1, box // 3))
-                for x in range(x0, min(ox + box, x0 + rng.randint(box // 2, box))):
-                    if 0 <= x < w and 0 <= y < h:
-                        px[x, y] = ink[-1] + (255,)
-            else:
-                x = ox + rng.randrange(box)
-                y0 = oy + rng.randrange(max(1, box // 3))
-                for y in range(y0, min(oy + box, y0 + rng.randint(box // 2, box))):
-                    if 0 <= x < w and 0 <= y < h:
-                        px[x, y] = ink[-1] + (255,)
+    box = 12                                    # 1文字の枡。12px が読める下限
+    pad = 2
+    count = ((h if vertical else w) - pad) // (box + pad)
+    tone = ink[-1]
+    for index in range(max(1, count)):
+        ox = pad if vertical else pad + index * (box + pad)
+        oy = pad + index * (box + pad) if vertical else (h - box) // 2
+        if ox + box > w or oy + box > h:
+            break
+        # 枡の中に、横画を2〜4本・縦画を1〜3本。漢字の骨格に見せる
+        # **画は 3px 幅にする。** 開き演算は 2px 以下を消すため、
+        # 2px の画は「細い突起」として基準に落ちる（実測 50%）。
+        # 12px の枡に 3px の画なら、漢字の骨格として成立する密度になる。
+        for _ in range(rng.randint(2, 3)):
+            y = oy + rng.randrange(1, box - 3)
+            x0 = ox + rng.randrange(0, 2)
+            x1 = min(ox + box, x0 + rng.randint(box * 2 // 3, box))
+            for x in range(x0, x1):
+                for t in range(3):
+                    if x < w and y + t < h:
+                        px[x, y + t] = tone + (255,)
+        for _ in range(rng.randint(1, 2)):
+            x = ox + rng.randrange(1, box - 3)
+            y0 = oy + rng.randrange(0, 2)
+            y1 = min(oy + box, y0 + rng.randint(box * 2 // 3, box))
+            for y in range(y0, y1):
+                for t in range(3):
+                    if x + t < w and y < h:
+                        px[x + t, y] = tone + (255,)
     return img
 
 

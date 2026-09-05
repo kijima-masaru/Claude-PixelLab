@@ -25,6 +25,9 @@ CHECKS = ("palette", "grid", "alpha", "size", "layout")
 #: 中間生成物に付く名前。assets/ に現れてはならない。
 #: 敷き詰めの確認画像（tools/assemble_tileset.py の出力）が
 #: 手作業で assets/ にコピーされる事故が実際に起きたため、名前で検出する。
+#: 1点が複数ファイルになるカテゴリ。ここだけ素材名のディレクトリを要求する。
+MULTI_FILE_CATEGORIES = ("tilesets",)
+
 INTERMEDIATE_STEMS = ("assembled", "assembled_on_dark", "assembled_on_light",
                       "assembled_tiles", "island", "island_on_dark",
                       "island_on_light", "island_tiles",
@@ -100,9 +103,10 @@ def check_layout(cfg: dict) -> list:
 
     見るのは2つ。
 
-      1. **カテゴリ直下に緩い PNG が置かれていないか。**
-         完成品は `assets/<category>/<素材名>/` にまとまるのが規約である。
-         直下に PNG があるのは、確認画像を手でコピーした跡である可能性が高い
+      1. **1点が複数ファイルになるカテゴリで、直下に緩い PNG が無いか。**
+         タイルセットは16枚＋変種で1点なので `<素材名>/` にまとめる。
+         **deco / objects のように1点1ファイルのカテゴリは直下でよい**
+         （素材ごとにディレクトリを作っても意味が無い）
       2. **中間生成物の名前を持つファイルが無いか。**
          `assembled*.png` などは敷き詰めの確認用であって完成品ではない
 
@@ -117,12 +121,12 @@ def check_layout(cfg: dict) -> list:
         directory = assets / category
         if not directory.is_dir():
             continue
-        loose = sorted(p for p in directory.iterdir()
-                       if p.is_file() and p.suffix.lower() == ".png")
-        for path in loose:
-            problems.append(
-                "%s: カテゴリ直下に PNG があります。完成品は素材名のディレクトリへ入れること"
-                % path.relative_to(config.ROOT))
+        if category in MULTI_FILE_CATEGORIES:
+            for path in sorted(p for p in directory.iterdir()
+                               if p.is_file() and p.suffix.lower() == ".png"):
+                problems.append(
+                    "%s: カテゴリ直下に PNG があります。完成品は素材名のディレクトリへ入れること"
+                    % path.relative_to(config.ROOT))
         for path in sorted(directory.rglob("*.png")):
             if path.stem in INTERMEDIATE_STEMS:
                 problems.append(
