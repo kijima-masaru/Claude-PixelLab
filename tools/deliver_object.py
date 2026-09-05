@@ -9,7 +9,7 @@
 機械で判定する7項目。**量産中に足さないこと。**
 
   1. パレット適合      使用色すべてがパレット内
-  2. 光源色の面積      15%以下。**光る部分は物の一部**であって面の大半ではない
+  2. 光源色の面積      光らない物は 0%、**自ら発光する物だけ 50% まで**
   3. 透過              アルファは 0 と 255 のみ。32px で半透明は滲みになる
   4. 接地影            底2行に暗部。**シルエット外へ2pxを超えて伸びない**（第5節）
   5. 寸法とグリッド    32の倍数。余白がトリム済み
@@ -48,7 +48,14 @@ except ImportError:
 
 #: 判定の基準。**凍結してある。** 足すなら既に納品したものへ遡って適用が要る。
 CRITERIA = {
-    "light_area_max": 0.15,
+    # **光らない物には 0%、光る物には 50%。**
+    #   一律15%は誤りだった。光らない物は「地の色のみのパレット」を渡すので
+    #   構造的に0%になる（規則が重複している）。一方、自販機の表示面は
+    #   前面のおよそ半分を占めるのが実物であり、15%では通らない
+    #   （試作で 17% / 59% / 30%。3回とも不合格）。
+    #   **パレットの使い分けと同じ線で分ける。**
+    "light_area_max": 0.0,
+    "light_area_max_luminous": 0.50,
     "thin_ratio_max": 0.05,
     "contact_shadow_rows": 2,
     "shadow_overhang_max": 2,
@@ -63,7 +70,7 @@ def _lightness(colour) -> float:
 
 
 def inspect(image: Image.Image, palette: set, lights: set,
-            ground_layer: bool = False) -> tuple:
+            ground_layer: bool = False, luminous: bool = False) -> tuple:
     """(問題のリスト, 実測値) を返す。"""
     problems, stats = [], {}
     rgba = image.convert("RGBA")
@@ -82,11 +89,13 @@ def inspect(image: Image.Image, palette: set, lights: set,
     # 2. 光源色の面積
     light_area = sum(1 for p in opaque if p[:3] in lights) / len(opaque)
     stats["light_area"] = light_area
-    if light_area > CRITERIA["light_area_max"]:
+    cap = CRITERIA["light_area_max_luminous"] if luminous else CRITERIA["light_area_max"]
+    if light_area > cap:
         problems.append(
             "光源色が面積の %.0f%% を占めています（上限 %.0f%%）。"
-            "**光る部分は物の一部であって、面の大半ではありません**"
-            % (light_area * 100, CRITERIA["light_area_max"] * 100))
+            % (light_area * 100, cap * 100)
+            + ("**光る面が大きすぎます**" if luminous
+               else "**光らない物に光源色を使ってはいけません**"))
 
     # 3. 透過
     alphas = {p[3] for p in pixels}
@@ -170,6 +179,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--category", default="deco", help="納品先のカテゴリ（既定: deco）。")
     parser.add_argument("--palette", default="palettes/iwato_colors.png")
     parser.add_argument("--terrain-palette", default="palettes/iwato_colors_terrain.png")
+    parser.add_argument("--luminous", action="store_true",
+                        help="自ら発光する物として検査する（光源色の上限を 50% にする）。")
     parser.add_argument("--force", action="store_true", help="基準を無視して納品する。")
     return parser
 
@@ -195,7 +206,8 @@ def main(argv=None) -> int:
     for path in files:
         image = Image.open(path)
         problems, stats = inspect(image, palette, lights,
-                                  ground_layer=args.category not in ("deco",))
+                                  ground_layer=args.category not in ("deco",),
+                                  luminous=args.luminous)
         name = path.stem
         report[name] = {"problems": problems, "stats": stats}
         line = ("   %-24s %-9s 色数%3d 光源%4.0f%% 細い突起%4.0f%% 平均明度%5.0f"

@@ -1,0 +1,140 @@
+# =====================================================================
+# 磐戸町奇譚 オブジェクトの発注表
+#
+# **66点。** production_plan.yaml の object_heights から、
+# object_low 50 と object_tall 16 を取り出したもの。
+# 残る25点は他の手段へ回っている（roof 14 → 屋根タイルセット5本、
+# merged 6 → 統合済み、deco 3 → 納品済み、tileset_extra 2 → タイルセット側）。
+#
+# 生成は PixelLab の /map-objects（PILOT_FINDINGS 第19節）。
+# =====================================================================
+
+schema_version: 1
+project_id: iwato
+
+# ---------------------------------------------------------------------
+# ★ 共通規約 — 全点で同じものを使う
+#
+# 第3節（共通プレフィックスは記述を希釈する）はタイルセットの知見であり、
+# **100文字超の前置きを2つの地形の両方に付けたときの話**だった。
+# オブジェクトでは前置きではなく**短い接尾辞**を使う。目的は3つ。
+#
+#   1. 傾きを揃える。**91点がばらばらの角度で描かれると画面が壊れる**
+#   2. 光の向きを揃える。影は必ず手前（下）へ落ちる
+#   3. 単体であること。背景も地面も描かせない
+#
+# **接尾辞は短く保つ。** 長くすると素材の記述が薄まる。
+# ---------------------------------------------------------------------
+common_suffix: >-
+  seen from the front at a slight downward angle, lit from above,
+  single object on a transparent background
+
+# ---------------------------------------------------------------------
+# 画風の共通設定
+# ---------------------------------------------------------------------
+style_controls:
+  view: high top-down
+  outline: lineless
+  shading: basic shading
+  detail: medium detail
+  text_guidance_scale: 9.5
+
+# ---------------------------------------------------------------------
+# パレットの使い分け
+#   **既定は地の色のみ（64色）。** 光源色を渡すと、光らない物まで
+#   鮮やかになる（ポストと樹木が磐戸町の画面から浮いた）。
+#   **自ら発光する物だけ**が全76色を使ってよい。
+# ---------------------------------------------------------------------
+palettes:
+  default: palettes/iwato_colors_terrain.png
+  luminous: palettes/iwato_colors.png
+
+luminous:
+  - obj_vending_machine
+  - obj_street_light_led
+  - obj_public_phone
+
+# ---------------------------------------------------------------------
+# 発注表
+#   size … 出力の一辺。32/64/128。**tall は 128 を基本にする**
+#   desc … 素材の記述。**特徴を並べず、何であるかを短く書く**（第3節）
+# ---------------------------------------------------------------------
+objects:
+
+  # --- 道路・インフラ -------------------------------------------------
+  - {id: obj_utility_pole, size: 128, desc: "a grey concrete utility pole with steel cable brackets and a small transformer drum"}
+  - {id: obj_street_light_led, size: 128, desc: "a slim steel street light pole with a flat LED lamp head glowing pale white"}
+  - {id: obj_street_light_mercury, size: 128, desc: "an old steel street light pole with a round mercury lamp shade"}
+  - {id: obj_guardrail, size: 64, desc: "a white painted steel highway guardrail section with two posts, rusted at the base"}
+  - {id: obj_traffic_cone, size: 32, desc: "an orange traffic cone with a faded reflective band"}
+  - {id: obj_road_mirror, size: 128, desc: "a round convex road mirror on an orange steel pole"}
+  - {id: obj_road_closure_sign, size: 64, desc: "a folding steel road closure sign with diagonal stripes"}
+  - {id: obj_signboard_pole, size: 128, desc: "a tall steel pole carrying a blank rectangular shop sign board"}
+  - {id: obj_bus_stop_pole, size: 128, desc: "a round bus stop pole with a small timetable plate"}
+  - {id: obj_bridge_pier, size: 128, desc: "a massive square concrete bridge pier, damp and stained"}
+  - {id: obj_bridge_railing, size: 64, desc: "a concrete bridge railing section with a steel handrail"}
+  - {id: obj_river_marker, size: 32, desc: "a short concrete river boundary post, weathered"}
+  - {id: obj_wire_fence, size: 64, desc: "a galvanised chain link fence section with steel posts"}
+  - {id: obj_block_wall, size: 64, desc: "a concrete block wall section, weathered and stained"}
+  - {id: obj_stair_handrail, size: 64, desc: "a steel pipe handrail for outdoor stairs, chipped paint"}
+
+  # --- 生活・商店 -----------------------------------------------------
+  - {id: obj_vending_machine, size: 128, desc: "a Japanese roadside drink vending machine, its display panel glowing pale cyan-green"}
+  - {id: obj_public_phone, size: 128, desc: "a green Japanese public telephone box with a glass door and a lit interior"}
+  - {id: obj_mailbox, size: 32, desc: "a small steel residential mailbox on a short post"}
+  - {id: obj_signboard_shutter, size: 64, desc: "a closed corrugated steel shop shutter with a faded sign board above"}
+  - {id: obj_bulletin_board, size: 128, desc: "a wooden community bulletin board with a small roof and pinned papers"}
+  - {id: obj_kei_car, size: 64, desc: "a small boxy Japanese kei car, dusty pale paint"}
+  - {id: obj_bicycle, size: 64, desc: "an old city bicycle with a front basket, leaning"}
+  - {id: obj_bicycle_rack, size: 64, desc: "a row of steel bicycle rack slots set in concrete"}
+  - {id: obj_laundry_pole, size: 64, desc: "a pair of steel laundry pole stands with a horizontal bar"}
+  - {id: obj_air_conditioner_outdoor, size: 64, desc: "an outdoor air conditioner unit with a fan grille and pipes"}
+  - {id: obj_water_tank, size: 64, desc: "a rooftop stainless water tank on short steel legs"}
+  - {id: obj_planter_box, size: 64, desc: "a concrete planter box with dry soil and a few weeds"}
+  - {id: obj_potted_plant, size: 32, desc: "a clay pot with a dry potted plant"}
+  - {id: obj_hedge, size: 64, desc: "a clipped evergreen hedge section, dusty leaves"}
+  - {id: obj_bench, size: 64, desc: "a weathered wooden park bench with thin steel legs"}
+  - {id: obj_fire_extinguisher, size: 32, desc: "a red fire extinguisher in a steel wall bracket"}
+
+  # --- 農・自然 -------------------------------------------------------
+  - {id: obj_agricultural_machine, size: 64, desc: "a small rusted rice field cultivator machine"}
+  - {id: obj_rice_plant_cluster, size: 32, desc: "a dense cluster of tall green rice plants"}
+  - {id: obj_plum_tree_bare, size: 128, desc: "a bare gnarled plum tree with dark twisted branches and no leaves"}
+  - {id: obj_fallen_log, size: 64, desc: "a fallen mossy cedar log on the forest floor"}
+  - {id: obj_water_fountain, size: 64, desc: "a concrete outdoor drinking fountain with a steel tap"}
+  - {id: obj_water_basin, size: 32, desc: "a stone water basin filled with still water"}
+
+  # --- 社寺 -----------------------------------------------------------
+  - {id: obj_torii, size: 128, desc: "a weathered vermilion wooden torii gate with two pillars and a curved lintel"}
+  - {id: obj_temple_gate, size: 128, desc: "a small wooden temple gate with a tiled roof and two pillars"}
+  - {id: obj_stone_lantern, size: 64, desc: "a mossy stone lantern with a square light chamber and a pointed cap"}
+  - {id: obj_stone_buddha, size: 64, desc: "a small weathered stone buddha statue with a red cloth bib"}
+  - {id: obj_komainu, size: 64, desc: "a weathered stone guardian lion dog statue on a square pedestal"}
+  - {id: obj_ox_statue, size: 64, desc: "a weathered stone reclining ox statue on a low pedestal"}
+  - {id: obj_offering_box, size: 32, desc: "a wooden offering box with a slatted top"}
+  - {id: obj_temple_bell, size: 64, desc: "a large bronze temple bell hanging in a wooden frame"}
+  - {id: obj_ema_rack, size: 64, desc: "a wooden rack hung with small votive tablets"}
+  - {id: obj_stone_marker, size: 32, desc: "a weathered stone boundary marker post with carved characters"}
+  - {id: obj_grave_marker, size: 32, desc: "a weathered stone grave marker slab"}
+
+  # --- 学校・屋内 -----------------------------------------------------
+  - {id: obj_school_gate, size: 128, desc: "a pair of steel school gate posts with an open gate"}
+  - {id: obj_goal_post, size: 128, desc: "a steel football goal post frame with a torn net"}
+  - {id: obj_swing_set, size: 128, desc: "a steel swing set frame with two seats hanging"}
+  - {id: obj_flag_pole, size: 128, desc: "a tall white steel flag pole with a bare halyard"}
+  - {id: obj_backstop_placeholder, size: 64, desc: "a steel backstop fence frame behind a baseball plate", skip: true}
+  - {id: obj_blackboard, size: 64, desc: "a green chalkboard in a wooden frame with chalk dust"}
+  - {id: obj_school_desk, size: 32, desc: "a small wooden school desk with a steel frame"}
+  - {id: obj_shoe_locker, size: 64, desc: "a wall of wooden shoe lockers with open compartments"}
+  - {id: obj_classroom_window, size: 64, desc: "an aluminium framed classroom window with dusty glass"}
+  - {id: obj_gym_window_high, size: 64, desc: "a high gymnasium window with a steel frame and frosted glass"}
+  - {id: obj_corridor_door, size: 64, desc: "a wooden sliding corridor door with a frosted glass panel"}
+  - {id: obj_wall_clock, size: 32, desc: "a round wall clock with a plain white face"}
+  - {id: obj_wall_bars, size: 64, desc: "wooden gymnasium wall bars fixed to a wall"}
+  - {id: obj_stage_curtain, size: 64, desc: "a heavy dark red stage curtain, gathered at one side"}
+  - {id: obj_upright_piano, size: 64, desc: "an old upright piano with a closed lid"}
+  - {id: obj_folded_mat, size: 32, desc: "a stack of folded gymnastics mats"}
+  - {id: obj_electric_fan, size: 32, desc: "an old steel electric fan on a stand"}
+  - {id: obj_bookshelf, size: 64, desc: "a wooden bookshelf filled with worn books"}
+  - {id: obj_low_table, size: 32, desc: "a low wooden table with a worn top"}
+  - {id: obj_room_interior_stopped, size: 64, desc: "a small tatami room interior with a low table and a cushion"}
