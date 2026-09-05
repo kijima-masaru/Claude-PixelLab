@@ -1,0 +1,7 @@
+# Godot の import キャッシュ。**再生成される。**
+.godot/
+*.uid
+
+# assets は projects/iwato/assets へのジャンクション。**実体は入れない。**
+# 作り方は README.md を参照。
+assets
