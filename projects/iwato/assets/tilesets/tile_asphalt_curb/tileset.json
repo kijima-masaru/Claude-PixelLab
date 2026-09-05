@@ -1,20 +1,26 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "name": "tile_asphalt_curb",
-  "note": "自作画像から tools/tile_from_texture.py で合成。**base64 は持たない。** 画像は同じディレクトリの PNG（Git LFS 管理）。",
+  "note": "車道×歩道。自作画像から",
   "source": {
-    "tool": "tools/tile_from_texture.py",
-    "command": "python tools/tile_from_texture.py --project iwato --source \"refs/スクリーンショット 2026-08-29 221008.png\" --region 430,400,170,70 --region 660,370,170,60 --region 830,370,170,60 --name tile_asphalt_curb --out _work/tile_asphalt_curb --boundary-jitter 0.0",
-    "palette": "palettes/iwato_colors_terrain.png（生成時は64色版。72色版は上位集合であり、パレット適合は維持される）",
-    "seed": 0
+    "command": "python tools/tile_from_texture.py --project iwato --source refs/<自作画面> --region 430,400,170,70 --region 660,370,170,60 --region 830,370,170,60 --name tile_asphalt_curb --out _work/tile_asphalt_curb --boundary-jitter 0.0",
+    "palette": "palettes/iwato_colors_terrain.png"
   },
   "measured": {
-    "lower_roughness": 5.18,
-    "lower_periodicity": 0.59,
-    "upper_roughness": 5.87,
-    "upper_periodicity": 0.6,
-    "colours": 9,
-    "out_of_palette": 0
+    "lower": {
+      "roughness": 5.180296224279843,
+      "grain_ratio": 0.2856272838002436,
+      "grid_visibility": 0.0,
+      "hue_spread": 10.0,
+      "colours": 8
+    },
+    "upper": {
+      "roughness": 5.86849515432101,
+      "grain_ratio": 0.28674776518293243,
+      "grid_visibility": 0.0,
+      "hue_spread": 1.1368421052630993,
+      "colours": 6
+    }
   },
   "tile_size": {
     "width": 32,
@@ -185,5 +191,108 @@
         "SE": "upper"
       }
     }
-  ]
+  ],
+  "alternatives": {
+    "note": "ランダムに置いてよい。",
+    "lower": [
+      {
+        "name": "alt_lower_00",
+        "file": "alt_lower_00.png"
+      },
+      {
+        "name": "alt_lower_01",
+        "file": "alt_lower_01.png"
+      },
+      {
+        "name": "alt_lower_02",
+        "file": "alt_lower_02.png"
+      },
+      {
+        "name": "alt_lower_03",
+        "file": "alt_lower_03.png"
+      },
+      {
+        "name": "alt_lower_04",
+        "file": "alt_lower_04.png"
+      },
+      {
+        "name": "alt_lower_05",
+        "file": "alt_lower_05.png"
+      },
+      {
+        "name": "alt_lower_06",
+        "file": "alt_lower_06.png"
+      },
+      {
+        "name": "alt_lower_07",
+        "file": "alt_lower_07.png"
+      },
+      {
+        "name": "alt_lower_08",
+        "file": "alt_lower_08.png"
+      },
+      {
+        "name": "alt_lower_09",
+        "file": "alt_lower_09.png"
+      },
+      {
+        "name": "alt_lower_10",
+        "file": "alt_lower_10.png"
+      },
+      {
+        "name": "alt_lower_11",
+        "file": "alt_lower_11.png"
+      }
+    ],
+    "upper": [
+      {
+        "name": "alt_upper_00",
+        "file": "alt_upper_00.png"
+      },
+      {
+        "name": "alt_upper_01",
+        "file": "alt_upper_01.png"
+      },
+      {
+        "name": "alt_upper_02",
+        "file": "alt_upper_02.png"
+      },
+      {
+        "name": "alt_upper_03",
+        "file": "alt_upper_03.png"
+      },
+      {
+        "name": "alt_upper_04",
+        "file": "alt_upper_04.png"
+      },
+      {
+        "name": "alt_upper_05",
+        "file": "alt_upper_05.png"
+      },
+      {
+        "name": "alt_upper_06",
+        "file": "alt_upper_06.png"
+      },
+      {
+        "name": "alt_upper_07",
+        "file": "alt_upper_07.png"
+      },
+      {
+        "name": "alt_upper_08",
+        "file": "alt_upper_08.png"
+      },
+      {
+        "name": "alt_upper_09",
+        "file": "alt_upper_09.png"
+      },
+      {
+        "name": "alt_upper_10",
+        "file": "alt_upper_10.png"
+      },
+      {
+        "name": "alt_upper_11",
+        "file": "alt_upper_11.png"
+      }
+    ]
+  }
 }
