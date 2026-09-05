@@ -5,7 +5,7 @@
   "source": {
     "tool": "tools/tile_from_texture.py",
     "command": "python tools/tile_from_texture.py --project iwato --source \"refs/スクリーンショット 2026-08-29 221008.png\" --region 430,400,170,70 --region 660,370,170,60 --region 830,370,170,60 --name tile_asphalt_curb --out _work/tile_asphalt_curb --boundary-jitter 0.0",
-    "palette": "palettes/iwato_64_colors_terrain.png",
+    "palette": "palettes/iwato_colors_terrain.png（生成時は64色版。72色版は上位集合であり、パレット適合は維持される）",
     "seed": 0
   },
   "measured": {

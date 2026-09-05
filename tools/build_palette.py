@@ -171,6 +171,17 @@ def verify(colours: list, spec: dict) -> tuple:
             % (MIN_STEP_DELTA, " / ".join(tight))
         )
 
+    # 地形用パレットの取りこぼし
+    #   ランプを足して TERRAIN_RAMPS に足し忘れると、新色が
+    #   color_image に載らないまま気づかれない。コードで見張る。
+    ground_ramps = {c["ramp"] for c in colours if c["kind"] == "ground"}
+    missing = sorted(ground_ramps - set(TERRAIN_RAMPS))
+    if missing:
+        problems.append(
+            "地の色の系統が TERRAIN_RAMPS に入っていません: " + ", ".join(missing)
+            + " / この系統の色は color_image の地形用パレットに載らず、"
+              "タイルセットで使えません。")
+
     # 置換テーブル
     stats = {}
     for name, variant in spec["time_variants"].items():
@@ -288,7 +299,11 @@ def write_swatch_sheet(colours: list, spec: dict, ramps: dict, path) -> None:
 #: color_image は「どの色を使えるか」は縛るが「どこに使うか」は縛らない。
 #: 光源色を渡すと、光源が無い地面の境界にハイライトとして使われる
 #: （橙の縁取り問題。実測で確認）。渡さなければ構造的に起こり得ない。
-TERRAIN_RAMPS = ("ink", "concrete", "indigo", "violet", "green", "earth", "skin")
+#: 地形（地の色）に属する系統。光源色だけを除く。
+#: **ランプを足したらここにも足すこと。** 足し忘れると、新しい色が
+#: color_image の地形用パレットに載らず、タイルセットで使えない。
+TERRAIN_RAMPS = ("ink", "concrete", "indigo", "violet", "green",
+                 "olive", "earth", "warm", "skin")
 
 
 def write_color_source(colours: list, path) -> None:
@@ -393,7 +408,8 @@ def main(argv=None) -> int:
     source = pal_dir / (spec["name"] + "_colors.png")
     write_color_source(colours, source)
     if source.is_file():
-        print("書き出し: " + str(source.relative_to(config.ROOT)) + "（color_image 用・全64色）")
+        print("書き出し: " + str(source.relative_to(config.ROOT))
+              + "（color_image 用・全 %d色）" % len(colours))
 
     terrain = [c for c in colours if c["ramp"] in TERRAIN_RAMPS]
     tsource = pal_dir / (spec["name"] + "_colors_terrain.png")
