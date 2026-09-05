@@ -171,6 +171,27 @@ def verify(colours: list, spec: dict) -> tuple:
             % (MIN_STEP_DELTA, " / ".join(tight))
         )
 
+    # 彩度の上限（規約）
+    #   **色数ではなく彩度が歯止めである。** 64色から72色へ広げた際に
+    #   明文化した。ここで機械的に検査しないと、規約は文章のまま形骸化する。
+    #   暗部を除くのは、彩度が明度なしには知覚されないため
+    #   （藍の最暗段は彩度0.60 だが明度4で、ほぼ黒にしか見えない）。
+    loud = [c for c in colours
+            if c["kind"] == "ground" and c["s"] > MAX_GROUND_SAT and c["l"] > SAT_EXEMPT_LIGHT]
+    if loud:
+        problems.append(
+            "地の色の彩度が %.2f を超えています（明度%d超）: %s"
+            % (MAX_GROUND_SAT, SAT_EXEMPT_LIGHT,
+               " / ".join("%s[%d] S%.2f L%.0f" % (c["ramp"], c["index"], c["s"], c["l"])
+                          for c in loud))
+            + " / **鮮やかさが許されるのは光源色だけである。**")
+
+    lights = [c for c in colours if c["kind"] == "light"]
+    if len(lights) > MAX_LIGHT_COLOURS:
+        problems.append(
+            "光源色が %d 色あります。上限は %d 色で、増やすには個別の承認が要ります。"
+            % (len(lights), MAX_LIGHT_COLOURS))
+
     # 地形用パレットの取りこぼし
     #   ランプを足して TERRAIN_RAMPS に足し忘れると、新色が
     #   color_image に載らないまま気づかれない。コードで見張る。
@@ -302,6 +323,13 @@ def write_swatch_sheet(colours: list, spec: dict, ramps: dict, path) -> None:
 #: 地形（地の色）に属する系統。光源色だけを除く。
 #: **ランプを足したらここにも足すこと。** 足し忘れると、新しい色が
 #: color_image の地形用パレットに載らず、タイルセットで使えない。
+#: 地の色の彩度上限（規約）。**鮮やかさが許されるのは光源色だけ。**
+MAX_GROUND_SAT = 0.40
+#: 彩度の上限を適用しない明度。これ以下は彩度が知覚されない。
+SAT_EXEMPT_LIGHT = 20
+#: 光源色の上限。増やすには個別の承認を要する。
+MAX_LIGHT_COLOURS = 12
+
 TERRAIN_RAMPS = ("ink", "concrete", "indigo", "violet", "green",
                  "olive", "earth", "warm", "skin")
 
