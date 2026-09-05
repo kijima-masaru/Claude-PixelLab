@@ -302,3 +302,41 @@ def grid_visibility(image, tile: int = 32, period: int = 8) -> float:
                 continue
             best = max(best, _corr_at(grid, dx, dy))
     return best
+
+
+def grain_ratio(image, coarse: int = 8, fine: int = 1) -> float:
+    """**斑が「大きい」か「細かい」か。** ざらつきとは別の軸。
+
+    ざらつきが同じでも、斑が大きいほど「模様」として認識される。
+    実測（承認済みの `tile_asphalt_curb` と、初期の手続き的生成）:
+
+        路面  ざらつき 4.53  相関長 1.5px  **帯域比 0.31**  ← 静かな面に見える
+        土    ざらつき 3.77  相関長 6.0px  **帯域比 1.39**  ← 迷彩に見える
+        草    ざらつき 4.27  相関長 6.5px  **帯域比 1.38**  ← 同上
+
+    **数値上はどちらも目標帯（3.5〜6.0）に入っているのに、絵は別物だった。**
+    ざらつきだけでは足りない。
+
+    8〜16px の帯（大きい斑）のエネルギーを、1px の帯（細かい粒）で割る。
+    **1 を超えると大きい斑が主役になり、模様として読まれる。**
+
+    | 値 | 意味 |
+    | --- | --- |
+    | **0.3 前後** | **細かい粒が主。静かな面に見える**（路面がこれ） |
+    | 0.6〜1.0 | 大小が拮抗する |
+    | 1.0 以上 | 大きい斑が主。**迷彩に見える** |
+
+    fbm の `gain` で直接動かせる。`gain` が 1 未満だと粗いオクターブが
+    支配し（帯域比が上がる）、1 以上だと細かいオクターブが支配する。
+    **標準的な fBm の既定（gain=0.5）は、地面の素材には向かない。**
+    """
+    from PIL import ImageFilter
+    grey = image.convert("L")
+    w, h = grey.size
+
+    def energy(a: int, b: int) -> float:
+        pa = (grey if a == 0 else grey.filter(ImageFilter.BoxBlur(a))).load()
+        pb = grey.filter(ImageFilter.BoxBlur(b)).load()
+        return sum(abs(pa[x, y] - pb[x, y]) for y in range(h) for x in range(w)) / (w * h)
+
+    return energy(coarse, coarse * 2) / max(energy(0, fine), 0.01)

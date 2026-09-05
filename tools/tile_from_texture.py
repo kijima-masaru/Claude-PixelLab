@@ -343,14 +343,17 @@ def build_wang(lower: list, upper: list, palette: list, seed: int,
                curb: bool, curb_top: tuple, curb_base: tuple,
                jitter: float = 0.02) -> list:
     """2素材と角マスクから16枚を合成する。"""
-    rng = random.Random(seed)
     tiles = []
     size = lower[0].size[0]
     for index in range(16):
         bits = ((index >> 3) & 1, (index >> 2) & 1, (index >> 1) & 1, index & 1)
         mask = corner_mask(bits, size, seed + index, jitter)
-        lo = rng.choice(lower).convert("RGB")
-        up = rng.choice(upper).convert("RGB")
+        # **変種をランダムに選ばない。** 素材がスーパータイル（連続した面を
+        # 切り分けたもの）である場合、ランダムに選ぶと境界タイルで連続性が
+        # 切れ、草の塊の縁に四角い継ぎ目が見える。位置で選べば、
+        # lower と upper が元の面の同じ場所から来るため揃う。
+        lo = lower[index % len(lower)].convert("RGB")
+        up = upper[index % len(upper)].convert("RGB")
         image = Image.new("RGB", (size, size))
         px, pl, pu = image.load(), lo.load(), up.load()
         for y in range(size):
@@ -510,6 +513,25 @@ def main(argv=None) -> int:
                       "base64": base64.b64encode(buffer.getvalue()).decode(), "format": "png"},
         })
         tile["image"].save(out_dir / ("%s.png" % tile["name"]))
+    # ★ 代替タイル（変種）。**16枚の Wang タイルだけでは足りない。**
+    #   全面 lower / 全面 upper のタイルは各1枚しかないため、広い面を
+    #   敷くとその1枚が 32px 周期で反復する（実測: 格子の目立ちやすさ 0.85）。
+    #   Godot の TileSet は alternative tiles をランダムに置ける。
+    payload["tileset"]["alternatives"] = {"lower": [], "upper": []}
+    for kind, variants in (("lower", lower), ("upper", upper)):
+        for i, image in enumerate(variants):
+            name = "alt_%s_%02d" % (kind, i)
+            buffer = io.BytesIO()
+            image.convert("RGB").save(buffer, "PNG")
+            payload["tileset"]["alternatives"][kind].append({
+                "id": name, "name": name,
+                "image": {"type": "base64",
+                          "base64": base64.b64encode(buffer.getvalue()).decode(), "format": "png"}})
+            image.convert("RGB").save(out_dir / ("%s.png" % name))
+    print("代替タイル: lower %d枚 / upper %d枚"
+          % (len(payload["tileset"]["alternatives"]["lower"]),
+             len(payload["tileset"]["alternatives"]["upper"])))
+
     (out_dir / "tileset.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
     layout(lower, 20, 11, args.seed + 1).save(out_dir / "field_lower.png")

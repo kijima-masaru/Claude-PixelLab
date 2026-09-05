@@ -72,9 +72,10 @@ def family(palette: list, name: str) -> list:
 
 
 def render_field(ramp: list, size: int, seed: int, contrast: float,
-                 octaves: int, base_cells: int, bias: float) -> Image.Image:
+                 octaves: int, base_cells: int, bias: float,
+                 gain: float = 1.0) -> Image.Image:
     """ノイズをランプへ写す。**ランプは1系統。色相は動かない。**"""
-    field = procgen.fbm(size, octaves, seed=seed, base_cells=base_cells)
+    field = procgen.fbm(size, octaves, seed=seed, base_cells=base_cells, gain=gain)
     image = Image.new("RGB", (size, size))
     px = image.load()
     steps = len(ramp)
@@ -105,8 +106,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--palette", default="palettes/iwato_colors_terrain.png")
     parser.add_argument("--size", type=int, default=256,
                         help="生成する面の一辺（既定: 256 = 8x8タイル）。")
-    parser.add_argument("--contrast", type=float, default=1.30,
-                        help="ランプのどこまで使うか（既定: 1.30）。**質感はここで出す**。")
+    parser.add_argument("--contrast", type=float, default=0.75,
+                        help="ランプのどこまで使うか（既定: 0.75）。ざらつきの量を決める。")
+    parser.add_argument("--contrast-lower", type=float, default=None,
+                        help="下の地形だけコントラストを変える。**段数の少ないランプでは要る**"
+                             "（4段のランプに同じ値を使うと段差が大きくなり、ざらつきが上振れする）。")
+    parser.add_argument("--contrast-upper", type=float, default=None,
+                        help="上の地形だけコントラストを変える。")
+    parser.add_argument("--gain", type=float, default=1.0,
+                        help="オクターブの重み（既定: 1.0）。**斑の大きさを決める最重要の値**。"
+                             "1未満だと粗い斑が支配して迷彩になる（標準的な fBm の既定 0.5 は地面に向かない）。")
     parser.add_argument("--octaves", type=int, default=5, help="ノイズの段数（既定: 5）。")
     parser.add_argument("--base-cells", type=int, default=24,
                         help="最も粗い斑の格子数（既定: 24）。斑の大きさを決める。")
@@ -133,10 +142,12 @@ def main(argv=None) -> int:
     print("upper     : %s %d段  %s" % (args.upper, len(upper_ramp),
                                        " ".join("#%02X%02X%02X" % c for c in upper_ramp)))
 
-    lower_field = snap(render_field(lower_ramp, args.size, args.seed + 11, args.contrast,
+    ct_lower = args.contrast_lower if args.contrast_lower is not None else args.contrast
+    ct_upper = args.contrast_upper if args.contrast_upper is not None else args.contrast
+    lower_field = snap(render_field(lower_ramp, args.size, args.seed + 11, ct_lower,
                                     args.octaves, args.base_cells, args.bias), palette)
-    upper_field = snap(render_field(upper_ramp, args.size, args.seed + 23, args.contrast,
-                                    args.octaves, args.base_cells, args.bias), palette)
+    upper_field = snap(render_field(upper_ramp, args.size, args.seed + 23, ct_upper,
+                                    args.octaves, args.base_cells, args.bias, args.gain), palette)
     lower_tiles = slice_tiles(lower_field)
     upper_tiles = slice_tiles(upper_field)
 
@@ -146,6 +157,8 @@ def main(argv=None) -> int:
     print("lower     : ざらつき %.2f  / upper : ざらつき %.2f"
           % (sum(roughness(t) for t in lower_tiles) / len(lower_tiles),
              sum(roughness(t) for t in upper_tiles) / len(upper_tiles)))
+    print("斑の大きさ（帯域比）: lower %.2f / upper %.2f （**1を超えると迷彩に見える。路面は0.31**）"
+          % (procgen.grain_ratio(lower_field), procgen.grain_ratio(upper_field)))
     print("格子の目立ちやすさ: lower %.3f / upper %.3f （0.35未満なら格子は見えない）"
           % (procgen.grid_visibility(_tiled(lower_field), period=per_side),
              procgen.grid_visibility(_tiled(upper_field), period=per_side)))
@@ -165,6 +178,26 @@ def main(argv=None) -> int:
             "image": {"type": "base64",
                       "base64": base64.b64encode(buffer.getvalue()).decode(), "format": "png"}})
         tile["image"].save(out_dir / ("%s.png" % tile["name"]))
+    # ★ スーパータイル。**「代替タイル」ではない。**
+    #   これは連続した1枚の面を切り分けたものであり、**元の並び順で
+    #   置かなければならない。** ランダムに置くと連続性が壊れ、
+    #   32px の格子が見える（実測: 格子の目立ちやすさ 0.08 → 0.36）。
+    #   Godot 側では nx x ny のブロックとして、(x % nx, y % ny) で引くこと。
+    payload["tileset"]["supertile"] = {"width": per_side, "height": per_side,
+                                       "order": "row-major", "lower": [], "upper": []}
+    for kind, variants in (("lower", lower_tiles), ("upper", upper_tiles)):
+        for i, image in enumerate(variants):
+            name = "super_%s_%02d" % (kind, i)
+            buffer = io.BytesIO()
+            image.convert("RGB").save(buffer, "PNG")
+            payload["tileset"]["supertile"][kind].append({
+                "id": name, "name": name, "row": i // per_side, "col": i % per_side,
+                "image": {"type": "base64",
+                          "base64": base64.b64encode(buffer.getvalue()).decode(), "format": "png"}})
+            image.convert("RGB").save(out_dir / ("%s.png" % name))
+    print("スーパータイル: %dx%d = %d枚ずつ（**元の並び順で置くこと**）"
+          % (per_side, per_side, len(lower_tiles)))
+
     (out_dir / "tileset.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     lower_field.save(out_dir / "field_lower.png")
     upper_field.save(out_dir / "field_upper.png")

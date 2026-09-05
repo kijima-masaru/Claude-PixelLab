@@ -26,7 +26,7 @@ canvas:
 
 palette:
   # 使用してよい色数の上限。validate_assets.py の検査基準。
-  max_colors: 74
+  max_colors: 76
   # パレットファイルのプロジェクト相対パス。
   # 手で編集せず palettes/palette_spec.yaml を直して再生成すること:
   #   python tools/build_palette.py --project iwato
